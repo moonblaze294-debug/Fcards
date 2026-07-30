@@ -1,1 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedCards — Admin Import</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .admin-container { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+    .import-box { background: var(--bg-card); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .textarea { width: 100%; height: 300px; font-family: monospace; font-size: 13px; margin-bottom: 16px; white-space: pre; }
+    .help-text { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  
+  <script>
+    (function() {
+      var theme = localStorage.getItem('mimi_theme') || 'white-blue';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
+  <div id="toast-container"></div>
+
+  <header class="app-header">
+    <div class="container">
+      <a href="index.html" class="app-logo">
+        <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+        MedCards Admin
+      </a>
+      <div class="header-right">
+        <a href="index.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-container">
+    <div class="welcome" style="margin-bottom: 24px;">
+      <h1>Bulk Import Flashcards</h1>
+      <p>Paste your AI-generated Tab-Separated Values (TSV) below.</p>
+    </div>
+
+    <div class="import-box">
+      <p class="help-text"><strong>Expected format per line:</strong> ID <i>[tab]</i> Front <i>[tab]</i> Back <i>[tab]</i> Tags (comma separated) <i>[tab]</i> Layer (1-5)</p>
+      
+      <textarea id="import-text" class="textarea" placeholder="fm-01-001	What is Forensic Medicine?	Application of medical knowledge to law.	basics, definition	1"></textarea>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn btn-primary" onclick="processImport()">
+          <i class="fa-solid fa-file-import"></i> Import Cards
+        </button>
+        <span id="import-status" style="font-size: 13px; font-weight: 600; color: var(--success);"></span>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
 
