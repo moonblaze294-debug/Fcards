@@ -600,19 +600,10 @@
     </div>
   </main>
 
-  <!-- Stubs so standalone demo doesn't crash -->
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/themes.js"></script>
   <script>
-    // ── Stub data (replace with your real data.js / storage.js) ──────────────
-    var SUBJECTS = [
-      { id: 'forensic', code: 'FM', name: 'Forensic Medicine' },
-      { id: 'community', code: 'CM', name: 'Community Medicine' },
-    ];
-
-    function getCards()   { return []; }
-    function getTopics()  { return []; }
-    function getChapters(subId) { return []; }
-    function getStats()   { return { totalCards: 0, highYieldCards: 0 }; }
-    function refreshStats() {}
 
     // ── Render ────────────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
