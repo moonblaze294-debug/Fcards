@@ -12,7 +12,10 @@
   <link rel="stylesheet" href="css/styles.css">
 
   <!-- Minimal inline styles purely for custom subject layout not fully covered by styles.css -->
-  <style>
+
+    <style>
+    /* Subject Card (Clickable Header) */
+    .subject-wrapper { margin-bottom: 16px; }
     .subject-progress-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -21,14 +24,26 @@
       display: flex;
       align-items: center;
       gap: 20px;
-      margin-bottom: 12px;
       box-shadow: var(--shadow);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-radius 0.15s;
+      cursor: pointer;
+      position: relative;
+      z-index: 2;
     }
-    .subject-progress-card:hover {
+    .subject-progress-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+    
+    /* Expanded State */
+    .subject-wrapper.expanded .subject-progress-card {
+      border-radius: var(--radius) var(--radius) 0 0;
+      border-bottom-color: transparent;
+      transform: none;
+      box-shadow: none;
+    }
+    .subject-wrapper.expanded {
       box-shadow: var(--shadow-hover);
-      transform: translateY(-2px);
+      border-radius: var(--radius);
     }
+    
     .subject-badge {
       width: 48px;
       height: 48px;
@@ -54,69 +69,103 @@
       text-overflow: ellipsis;
       margin-bottom: 4px;
     }
-    .subject-meta {
-      font-size: 13px;
-      color: var(--text-muted);
+    .subject-meta { font-size: 13px; color: var(--text-muted); }
+    
+    .subject-progress-wrap { flex: 1; max-width: 200px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+    .progress-track { height: 6px; background: var(--border-light); border-radius: 99px; overflow: hidden; }
+    .progress-bar { height: 100%; border-radius: 99px; width: 0%; background: var(--accent); transition: width 1.2s cubic-bezier(.22,1,.36,1); }
+    
+    .subject-stats { display: flex; gap: 24px; flex-shrink: 0; text-align: right; }
+    .sub-stat-val { font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.1; }
+    .sub-stat-val.hy { color: var(--success); }
+    .sub-stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+    
+    /* Chevron Arrow */
+    .chevron-icon { color: var(--text-muted); transition: transform 0.3s ease; }
+    .subject-wrapper.expanded .chevron-icon { transform: rotate(180deg); }
+
+    /* Chapters Container (The Accordion Body) */
+    .chapters-container {
+      display: none;
+      padding: 0 24px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-top: 1px dashed var(--border);
+      border-radius: 0 0 var(--radius) var(--radius);
+      position: relative;
+      z-index: 1;
     }
-    .subject-progress-wrap {
-      flex: 1;
-      max-width: 200px;
+    .subject-wrapper.expanded .chapters-container {
+      display: block;
+      animation: slideDown 0.2s ease-out;
     }
-    .progress-label {
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Chapter & Topic Lists */
+    .chapter-item {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .chapter-item:last-child { border-bottom: none; }
+    .chapter-header {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      font-weight: 500;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .progress-track {
-      height: 6px;
-      background: var(--border-light);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .progress-bar {
-      height: 100%;
-      border-radius: 99px;
-      width: 0%;
-      background: var(--accent);
-      transition: width 1.2s cubic-bezier(.22,1,.36,1);
-    }
-    .subject-stats {
-      display: flex;
-      gap: 24px;
-      flex-shrink: 0;
-      text-align: right;
-    }
-    .sub-stat-val {
-      font-family: var(--font-heading);
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1.1;
-    }
-    .sub-stat-val.hy { color: var(--success); }
-    .sub-stat-label {
-      font-size: 11px;
+    .chapter-title {
       font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-top: 2px;
+      font-size: 15px;
+      color: var(--text);
     }
+    .chapter-actions { display: flex; gap: 8px; }
     
+    .topic-list-dash {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-left: 12px;
+      border-left: 2px solid var(--border-light);
+      margin-left: 4px;
+    }
+    .topic-link {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s, color 0.15s;
+    }
+    .topic-link i { color: var(--text-muted); font-size: 12px; }
+    .topic-link:hover {
+      background: var(--bg-input);
+      color: var(--accent);
+    }
+    .topic-link:hover i { color: var(--accent); }
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
       .subject-progress-card { flex-direction: column; align-items: flex-start; gap: 16px; }
       .subject-progress-wrap { max-width: 100%; width: 100%; }
       .subject-stats { width: 100%; justify-content: space-between; text-align: left; }
       .sub-stat { text-align: left; }
+      .chapter-header { flex-direction: column; align-items: flex-start; }
+      .chapter-actions { width: 100%; justify-content: flex-start; }
     }
     .nav-links { display: flex; gap: 12px; }
     .nav-link { color: var(--text-secondary); font-size: 14px; font-weight: 500; transition: color 0.15s; }
     .nav-link:hover, .nav-link.active { color: var(--accent); }
-  </style>
+    </style>
+  
 </head>
 <body>
   
@@ -359,7 +408,169 @@
         setTimeout(() => toast.remove(), 300);
       }, 3000);
     }
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      renderStats();
+      renderSubjectOverview();
+    });
+
+    function renderStats() {
+      const stats = getStats();
+      animateCount('stat-total', stats.totalCards || 0);
+      animateCount('stat-hy', stats.highYieldCards || 0);
+    }
+
+    function handleRefreshStats() {
+      refreshStats();
+      renderStats();
+      renderSubjectOverview();
+      showToast('Card counts refreshed successfully', 'success');
+    }
+
+    // Toggle the Accordion
+    function toggleSubject(subjectId) {
+      const wrapper = document.getElementById('subject-wrap-' + subjectId);
+      wrapper.classList.toggle('expanded');
+    }
+
+    function renderSubjectOverview() {
+      const container = document.getElementById('subject-overview');
+      const allCards = getCards();
+      const allTopics = getTopics();
+
+      document.getElementById('subject-count').textContent = `${SUBJECTS.length} subjects`;
+
+      container.innerHTML = SUBJECTS.map(subject => {
+        // Collect Chapter IDs
+        const chapterIds = subject.sections.flatMap(section => 
+          section.chapters.map(chapter => chapter.id)
+        );
+
+        // Subject level stats
+        const subjectCards = allCards.filter(card => chapterIds.includes(card.chapterId));
+        const subjectHY = subjectCards.filter(card => card.layer && card.layer <= 3).length;
+        const topicCount = allTopics.filter(topic => chapterIds.includes(topic.chapterId)).length;
+        const progressPct = subjectCards.length > 0 ? Math.round((subjectHY / subjectCards.length) * 100) : 0;
+
+        // Build the Chapters HTML
+        let chaptersHtml = '';
+        subject.sections.forEach(section => {
+          if (section.name) {
+            chaptersHtml += `<div class="section-divider" style="font-size:12px; margin: 16px 0 8px;">${section.name}</div>`;
+          }
+          
+          section.chapters.forEach(chapter => {
+            const chapterTopics = allTopics.filter(t => t.chapterId === chapter.id);
+            
+            // Build Topics inside this Chapter
+            let topicsHtml = '';
+            if (chapterTopics.length > 0) {
+              topicsHtml = `<div class="topic-list-dash">` + chapterTopics.map(t => 
+                `<a href="flashcards.html?topic=${t.id}" class="topic-link"><i class="fa-solid fa-file-lines"></i> ${t.name}</a>`
+              ).join('') + `</div>`;
+            } else {
+              topicsHtml = `<div class="topic-list-dash"><span style="font-size:12px;color:var(--text-muted);padding:6px 10px;">No topics added yet</span></div>`;
+            }
+
+            // Chapter Row (Title, Buttons, Topics)
+            chaptersHtml += `
+              <div class="chapter-item">
+                <div class="chapter-header">
+                  <div class="chapter-title">Ch ${chapter.num}: ${chapter.name}</div>
+                  <div class="chapter-actions">
+                    <a href="settings.html?chapter=${chapter.id}&mode=practice" class="btn btn-ghost btn-sm"><i class="fa-solid fa-layer-group"></i> Practice</a>
+                    <a href="settings.html?chapter=${chapter.id}&mode=test" class="btn btn-primary btn-sm"><i class="fa-solid fa-stopwatch"></i> Test</a>
+                  </div>
+                </div>
+                ${topicsHtml}
+              </div>
+            `;
+          });
+        });
+
+        // Return the full Accordion wrapper
+        return `
+          <div class="subject-wrapper" id="subject-wrap-${subject.id}">
+            <div class="subject-progress-card" onclick="toggleSubject('${subject.id}')">
+              <div class="subject-badge">${subject.code}</div>
+              
+              <div class="subject-info">
+                <div class="subject-name">${subject.name}</div>
+                <div class="subject-meta">${chapterIds.length} chapters &middot; ${topicCount} topics</div>
+              </div>
+              
+              <div class="subject-progress-wrap">
+                <div class="progress-label">
+                  <span>High Yield Coverage</span>
+                  <span>${progressPct}%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-bar" data-target="${progressPct}"></div>
+                </div>
+              </div>
+              
+              <div class="subject-stats">
+                <div class="sub-stat">
+                  <div class="sub-stat-val">${subjectCards.length}</div>
+                  <div class="sub-stat-label">Total Cards</div>
+                </div>
+                <div class="sub-stat">
+                  <div class="sub-stat-val hy">${subjectHY}</div>
+                  <div class="sub-stat-label">High Yield</div>
+                </div>
+              </div>
+              
+              <i class="fa-solid fa-chevron-down chevron-icon"></i>
+            </div>
+
+            <div class="chapters-container">
+              ${chaptersHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Animate progress bars
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.querySelectorAll('.progress-bar[data-target]').forEach(bar => {
+            bar.style.width = bar.dataset.target + '%';
+          });
+        });
+      });
+    }
+
+    function animateCount(id, target) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (target === 0) { el.textContent = '0'; return; }
+      let start = 0; const duration = 700; let startTime = null;
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        el.textContent = Math.round(progress * target).toLocaleString();
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = msg;
+      container.appendChild(toast);
+      requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
   </script>
+
 </body>
 </html>
 
