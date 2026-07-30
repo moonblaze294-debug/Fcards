@@ -185,7 +185,29 @@
         <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
         MedCards
       </a>
-      <div class="header-right">
+            <div class="header-right">
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link active">Dashboard</a>
+          <a href="flashcards.html" class="nav-link">Flashcards</a>
+          <a href="notes.html" class="nav-link">Notes</a>
+          <a href="quiz.html" class="nav-link">Quiz</a>
+        </nav>
+        
+        <!-- ADD THIS DROPDOWN -->
+        <select class="theme-select" id="theme-selector" onchange="changeTheme(this.value)">
+          <option value="white-blue">White & Blue</option>
+          <option value="notebook">Ruled Paper</option>
+          <option value="chalkboard">Chalkboard</option>
+          <option value="scroll">Parchment</option>
+          <option value="sepia">Sepia</option>
+          <option value="dark">Midnight</option>
+          <option value="academia">Academia</option>
+          <option value="forest">Forest</option>
+          <option value="rose">Rose Quartz</option>
+          <option value="blueprint">Blueprint</option>
+          <option value="newsprint">Newsprint</option>
+        </select>
+      </div>
         <nav class="nav-links">
           <a href="index.html" class="nav-link active">Dashboard</a>
           <a href="flashcards.html" class="nav-link">Flashcards</a>
