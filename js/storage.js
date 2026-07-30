@@ -1,18 +1,33 @@
 /*
- * STORAGE.JS
+ * STORAGE.JS - Firebase Cloud + Local Cache Hybrid
  * ------------------------------------------------------------------
- * Browser-only localStorage layer.
- * Handles:
- *   - Cards
- *   - Topics
- *   - Notes
- *   - Cached stats
- *   - Theme
- *   - Image compression
- *
- * No APIs. No server. No frameworks.
+ * Uses Cloud Firestore for permanent cross-device storage,
+ * but maintains localStorage caching so the app stays lightning fast.
  * ------------------------------------------------------------------
  */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  doc, 
+  writeBatch 
+} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js";
+
+// Your exact Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDITAgKE4iVb14OTvZ8MIiT7NddxloZGzU",
+  authDomain: "fcards-63e5a.firebaseapp.com",
+  projectId: "fcards-63e5a",
+  storageBucket: "fcards-63e5a.firebasestorage.app",
+  messagingSenderId: "910533920343",
+  appId: "1:910533920343:web:0ab4f05a815831e669c512"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const KEYS = Object.freeze({
   cards: "mimi_cards",
@@ -23,228 +38,85 @@ const KEYS = Object.freeze({
 });
 
 /* =====================================================================
-   Generic Storage Helpers
+   Generic Local Storage Helpers
 ===================================================================== */
-
-/**
- * Safely read JSON from localStorage.
- * Returns fallback if key doesn't exist or parsing fails.
- */
 function storeGet(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
-
-    if (raw === null) {
-      return cloneFallback(fallback);
-    }
-
+    if (raw === null) return cloneFallback(fallback);
     return JSON.parse(raw);
   } catch (error) {
-    console.error(`Failed to read "${key}" from localStorage.`, error);
     return cloneFallback(fallback);
   }
 }
 
-/**
- * Safely write JSON to localStorage.
- */
 function storeSet(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch (error) {
-    console.error(`Failed to write "${key}" to localStorage.`, error);
     return false;
   }
 }
 
-/**
- * Prevent accidental mutation of fallback values.
- */
 function cloneFallback(value) {
   if (Array.isArray(value)) return [];
   if (value && typeof value === "object") return { ...value };
   return value;
 }
 
-/**
- * Generic collection loader.
- */
-function loadCollection(key) {
-  return storeGet(key, []);
-}
-
-/**
- * Generic collection saver.
- */
-function saveCollection(key, collection) {
-  return storeSet(key, collection);
-}
-
-/**
- * Generic filter helper.
- */
-function filterCollection(key, predicate) {
-  return loadCollection(key).filter(predicate);
-}
-
-/**
- * Generic find helper.
- */
-function findInCollection(key, predicate) {
-  return loadCollection(key).find(predicate);
-}
-
-/**
- * Generic remove helper.
- */
-function removeFromCollection(key, predicate) {
-  const filtered = loadCollection(key).filter(item => !predicate(item));
-  saveCollection(key, filtered);
-  return filtered;
-}
-
-/**
- * Generic upsert helper.
- * Automatically maintains timestamps.
- */
-function upsertCollectionItem(key, item) {
-  const collection = loadCollection(key);
-
-  const index = collection.findIndex(entry => entry.id === item.id);
-
-  const now = Date.now();
-
-  if (index >= 0) {
-    item.createdAt = collection[index].createdAt || item.createdAt || now;
-    item.updatedAt = now;
-    collection[index] = item;
-  } else {
-    item.createdAt = item.createdAt || now;
-    item.updatedAt = now;
-    collection.push(item);
-  }
-
-  saveCollection(key, collection);
-
-  return item;
-}
+function loadCollection(key) { return storeGet(key, []); }
+function saveCollection(key, collection) { return storeSet(key, collection); }
 
 /* =====================================================================
-   Cards
+   Firebase Cloud Sync Functions
 ===================================================================== */
 
-function getCards() {
-  return loadCollection(KEYS.cards);
-}
+// Pulls all cards from Firebase and saves them to local storage
+window.syncCardsFromCloud = async function() {
+  try {
+    const cardsCol = collection(db, 'cards');
+    const cardSnapshot = await getDocs(cardsCol);
+    const cloudCards = cardSnapshot.docs.map(doc => doc.data());
+    
+    saveCollection(KEYS.cards, cloudCards);
+    window.refreshStats();
+    return cloudCards;
+  } catch (error) {
+    console.error("Failed to sync from cloud:", error);
+    return window.getCards(); // Fallback to whatever is local
+  }
+};
 
-function getCardsByChapter(chapterId) {
-  return filterCollection(KEYS.cards, card => card.chapterId === chapterId);
-}
-
-function getCardsByTopic(topicId) {
-  return filterCollection(KEYS.cards, card => card.topicId === topicId);
-}
-
-function saveCard(card) {
-  return upsertCollectionItem(KEYS.cards, card);
-}
-
-function deleteCard(cardId) {
-  removeFromCollection(KEYS.cards, card => card.id === cardId);
-}
-
-/**
- * Bulk insert cards.
- * Existing IDs are skipped.
- */
-function saveCardsBulk(newCards) {
-  const cards = loadCollection(KEYS.cards);
-
-  const ids = new Set(cards.map(card => card.id));
-
+// Uploads bulk cards to Firebase, then updates local storage
+window.saveCardsBulkFirebase = async function(newCards) {
+  const batch = writeBatch(db);
+  let added = 0;
   const now = Date.now();
 
-  let added = 0;
-
-  for (const card of newCards) {
-    if (!card || !card.front) continue;
-    if (ids.has(card.id)) continue;
-
+  newCards.forEach(card => {
+    if (!card || !card.front) return;
     card.createdAt = now;
     card.updatedAt = now;
 
-    cards.push(card);
-    ids.add(card.id);
-
+    // Use card ID as the database document ID
+    const cardRef = doc(db, "cards", card.id);
+    batch.set(cardRef, card, { merge: true });
     added++;
-  }
+  });
 
-  saveCollection(KEYS.cards, cards);
-
+  await batch.commit();
+  await window.syncCardsFromCloud(); // Update local cache after upload
   return added;
-}
+};
 
 /* =====================================================================
-   Topics
+   Standard Local App Functions (Exposed to Window)
 ===================================================================== */
 
-function getTopics() {
-  return loadCollection(KEYS.topics);
-}
-
-function getTopicsByChapter(chapterId) {
-  return filterCollection(KEYS.topics, topic => topic.chapterId === chapterId);
-}
-
-function saveTopic(topic) {
-  const topics = loadCollection(KEYS.topics);
-
-  const index = topics.findIndex(t => t.id === topic.id);
-
-  const now = Date.now();
-
-  if (index >= 0) {
-    topic.createdAt = topics[index].createdAt || topic.createdAt || now;
-    topics[index] = topic;
-  } else {
-    topic.createdAt = topic.createdAt || now;
-    topics.push(topic);
-  }
-
-  saveCollection(KEYS.topics, topics);
-
-  return topic;
-}
-
-function deleteTopic(topicId) {
-  removeFromCollection(KEYS.topics, topic => topic.id === topicId);
-  removeFromCollection(KEYS.cards, card => card.topicId === topicId);
-}
-
-/* =====================================================================
-   Notes
-===================================================================== */
-
-function getNotes() {
-  return storeGet(KEYS.notes, {});
-}
-
-function getNote(topicId) {
-  return getNotes()[topicId] || "";
-}
-
-function saveNote(topicId, text) {
-  const notes = getNotes();
-
-  notes[topicId] = text;
-
-  storeSet(KEYS.notes, notes);
-}
-
-/* =====================================================================
-   Stats
-===================================================================== */
+window.getCards = function() { return loadCollection(KEYS.cards); };
+window.getTopics = function() { return loadCollection(KEYS.topics); };
+window.getNotes = function() { return storeGet(KEYS.notes, {}); };
 
 const DEFAULT_STATS = Object.freeze({
   totalCards: 0,
@@ -252,113 +124,28 @@ const DEFAULT_STATS = Object.freeze({
   lastRefreshed: null
 });
 
-function getStats() {
+window.getStats = function() {
   return storeGet(KEYS.stats, DEFAULT_STATS);
-}
+};
 
-function refreshStats() {
-  const cards = getCards();
-
+window.refreshStats = function() {
+  const cards = window.getCards();
   const stats = {
     totalCards: cards.length,
-    highYieldCards: cards.filter(
-      card => card.layer >= 1 && card.layer <= 3
-    ).length,
+    highYieldCards: cards.filter(c => c.layer >= 1 && c.layer <= 3).length,
     lastRefreshed: Date.now()
   };
-
   storeSet(KEYS.stats, stats);
-
   return stats;
-}
+};
 
-/* =====================================================================
-   Theme
-===================================================================== */
+window.getTheme = function() {
+  try { return localStorage.getItem(KEYS.theme) || "white-blue"; } 
+  catch (e) { return "white-blue"; }
+};
 
-function getTheme() {
-  try {
-    return localStorage.getItem(KEYS.theme) || "white-blue";
-  } catch (error) {
-    console.error("Failed to load theme.", error);
-    return "white-blue";
-  }
-}
-
-function setTheme(themeId) {
-  try {
-    localStorage.setItem(KEYS.theme, themeId);
-  } catch (error) {
-    console.error("Failed to save theme.", error);
-  }
-}
-
-/* =====================================================================
-   Image Compression
-===================================================================== */
-
-/**
- * Compress an image using Canvas.
- *
- * @param {File} file
- * @param {number} [maxSize=800]
- * @param {number} [quality=0.6]
- * @returns {Promise<{base64:string,sizeKB:number,width:number,height:number}>}
- */
-function compressImage(file, maxSize = 800, quality = 0.6) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onerror = reject;
-
-    reader.onload = event => {
-      const image = new Image();
-
-      image.onerror = reject;
-
-      image.onload = () => {
-        let width = image.width;
-        let height = image.height;
-
-        if (width > maxSize || height > maxSize) {
-          if (width >= height) {
-            height = Math.round((height * maxSize) / width);
-            width = maxSize;
-          } else {
-            width = Math.round((width * maxSize) / height);
-            height = maxSize;
-          }
-        }
-
-        const canvas = document.createElement("canvas");
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const context = canvas.getContext("2d");
-
-        if (!context) {
-          reject(new Error("Canvas 2D context unavailable."));
-          return;
-        }
-
-        context.drawImage(image, 0, 0, width, height);
-
-        const base64 = canvas.toDataURL("image/jpeg", quality);
-
-        const sizeKB = Math.round((base64.length * 3) / 4 / 1024);
-
-        resolve({
-          base64,
-          sizeKB,
-          width,
-          height
-        });
-      };
-
-      image.src = event.target.result;
-    };
-
-    reader.readAsDataURL(file);
-  });
-  }
+window.setTheme = function(themeId) {
+  try { localStorage.setItem(KEYS.theme, themeId); } 
+  catch (e) {}
+};
+  
