@@ -1,1 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedCards — Session Setup</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    .setup-wrapper {
+      max-width: 500px;
+      margin: 40px auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px;
+    }
+
+    .setup-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .setup-header h1 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    .setup-header p {
+      color: var(--accent);
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .checkbox-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .layer-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .layer-option:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-soft);
+    }
+    
+    .layer-option input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .layer-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .layer-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .layer-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .action-bar {
+      margin-top: 32px;
+      display: flex;
+      gap: 12px;
+    }
+    .action-bar .btn {
+      flex: 1;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  
+  <script>
+    (function() {
+      var theme = localStorage.getItem('mimi_theme') || 'white-blue';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
+  <header class="app-header">
+    <div class="container">
+      <a href="index.html" class="app-logo">
+        <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+        MedCards
+      </a>
+      <div class="header-right">
+        <a href="index.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-left"></i> Cancel</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="setup-wrapper">
+      
+      <div class="setup-header">
+        <h1>Configure Session</h1>
+        <p id="target-name">Loading Target...</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="form-group">
+        <label class="field-label">Select Yield Layers to Study</label>
+        <div class="checkbox-grid">
+          
+          <label class="layer-option">
+            <input type="checkbox" value="1" class="layer-checkbox" checked>
+            <div class="layer-info">
+              <span class="layer-title" style="color: var(--success);">High Yield (Layer 1)</span>
+              <span class="layer-desc">Must-know core concepts and definitions.</span>
+            </div>
+          </label>
+
+          <label class="layer-option">
+            <input type="checkbox" value="2" class="layer-checkbox" checked>
+            <div class="layer-info">
+              <span class="layer-title" style="color: var(--warning);">Core (Layer 2)</span>
+              <span class="layer-desc">Important supporting details and mechanisms.</span>
+            </div>
+          </label>
+
+          <label class="layer-option">
+            <input type="checkbox" value="3" class="layer-checkbox">
+            <div class="layer-info">
+              <span class="layer-title" style="color: var(--accent);">Comprehensive (Layer 3)</span>
+              <span class="layer-desc">Good to know, extra clinical correlations.</span>
+            </div>
+          </label>
+
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">Number of Cards</label>
+        <select id="card-limit" class="select">
+          <option value="10">10 Cards (Quick Review)</option>
+          <option value="20" selected>20 Cards (Standard Session)</option>
+          <option value="50">50 Cards (Deep Dive)</option>
+          <option value="all">All Available Cards</option>
+        </select>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-primary" onclick="startSession()" style="font-size: 16px;">
+          <i class="fa-solid fa-play"></i> Start Studying
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Load Data to get Chapter Names -->
+  <script src="js/data.js"></script>
+  
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const chapterId = urlParams.get('chapter');
+    const topicId = urlParams.get('topic');
+    const mode = urlParams.get('mode') || 'practice';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Find the name of what we are studying to display in the header
+      const targetNameEl = document.getElementById('target-name');
+      
+      if (chapterId) {
+        // Search through SUBJECTS array from data.js
+        let foundName = `Chapter: ${chapterId}`;
+        SUBJECTS.forEach(sub => {
+          sub.sections.forEach(sec => {
+            const ch = sec.chapters.find(c => c.id === chapterId);
+            if (ch) foundName = `Ch ${ch.num}: ${ch.name}`;
+          });
+        });
+        targetNameEl.textContent = foundName;
+      } else if (topicId) {
+        targetNameEl.textContent = `Topic: ${topicId}`;
+      } else {
+        targetNameEl.textContent = "General Review";
+      }
+
+      // Change button text based on mode
+      if (mode === 'test') {
+        const btn = document.querySelector('.btn-primary');
+        btn.innerHTML = `<i class="fa-solid fa-stopwatch"></i> Start Timed Test`;
+        btn.style.background = 'var(--danger)';
+        btn.style.borderColor = 'var(--danger)';
+      }
+    });
+
+    function startSession() {
+      // 1. Gather checked layers
+      const checkboxes = document.querySelectorAll('.layer-checkbox:checked');
+      const layers = Array.from(checkboxes).map(cb => cb.value).join(',');
+      
+      if (!layers) {
+        alert("Please select at least one yield layer.");
+        return;
+      }
+
+      // 2. Gather limit
+      const limit = document.getElementById('card-limit').value;
+
+      // 3. Build the new URL for flashcards.html
+      const nextUrl = new URL('flashcards.html', window.location.href);
+      
+      if (chapterId) nextUrl.searchParams.set('chapter', chapterId);
+      if (topicId) nextUrl.searchParams.set('topic', topicId);
+      
+      nextUrl.searchParams.set('mode', mode);
+      nextUrl.searchParams.set('layers', layers); // e.g., "1,2"
+      nextUrl.searchParams.set('limit', limit);   // e.g., "20"
+
+      // 4. Redirect
+      window.location.href = nextUrl.toString();
+    }
+  </script>
+</body>
+</html>
 
