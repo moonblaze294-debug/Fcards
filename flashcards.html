@@ -3,347 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MedCards — Flashcards</title>
-  
+  <title>Study Session</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="css/styles.css">
-
-  <style>
-    /* Flashcard-specific layout elements */
-    .flashcard-wrapper {
-      max-width: 600px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      padding-top: 20px;
-    }
-    
-    .card-progress-bar {
-      width: 100%;
-      height: 6px;
-      background: var(--border-light);
-      border-radius: 99px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-    .card-progress-fill {
-      height: 100%;
-      background: var(--accent);
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-
-    .card-header-info {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .controls-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-
-    /* Override flip face layout for vertical centering of text */
-    .flip-face {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 32px;
-    }
-
-    .card-text {
-      font-size: 18px;
-      font-weight: 500;
-      color: var(--text);
-      line-height: 1.5;
-      margin-bottom: 16px;
-    }
-
-    .card-tags {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .loading-state, .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-muted);
-    }
-    .loading-state i {
-      font-size: 32px;
-      color: var(--accent);
-      margin-bottom: 16px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-  </style>
+  <link rel="stylesheet" href="css/flashcards.css">
 </head>
 <body>
-  
-  <script>
-    (function() {
-      var theme = localStorage.getItem('mimi_theme') || 'white-blue';
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
-  </script>
 
-  <div id="toast-container"></div>
-
-  <header class="app-header">
-    <div class="container">
-      <a href="index.html" class="app-logo">
-        <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
-        MedCards
-      </a>
-      <div class="header-right">
-        <a href="index.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-left"></i> Exit Practice</a>
-      </div>
-    </div>
-  </header>
+  <header class="app-header"><div class="container"><h2>Flashcards</h2></div></header>
 
   <main class="container">
-    <div class="flashcard-wrapper" id="main-wrapper">
+    <div class="flashcard-wrapper">
+      <div class="flip-container" id="flip-container" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="card-text" id="front">Loading...</div>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="card-text" id="back"></div>
+            <div class="card-tags" id="tags"></div>
+          </div>
+        </div>
+      </div>
       
-      <!-- Loading State -->
-      <div id="loading-view" class="loading-state">
-        <i class="fa-solid fa-circle-notch"></i>
-        <p>Syncing cards from cloud...</p>
-      </div>
-
-      <!-- Empty State -->
-      <div id="empty-view" class="empty-state" style="display: none;">
-        <i class="fa-solid fa-box-open"></i>
-        <h2>No Cards Found</h2>
-        <p>There are no flashcards available for this section yet.</p>
-        <a href="admin.html" class="btn btn-primary" style="margin-top: 16px;">Import Cards</a>
-      </div>
-
-      <!-- Flashcard UI (Hidden until loaded) -->
-      <div id="study-view" style="display: none;">
-        
-        <!-- Progress Info -->
-        <div>
-          <div class="card-progress-bar">
-            <div class="card-progress-fill" id="progress-fill"></div>
-          </div>
-          <div class="card-header-info">
-            <span id="card-counter">Card 0 of 0</span>
-            <span id="card-layer-badge" class="layer-badge" style="background: var(--success-soft); color: var(--success);">High Yield</span>
-          </div>
-        </div>
-
-        <!-- The 3D Flip Card -->
-        <div class="flip-container" id="flip-container" onclick="toggleFlip()">
-          <div class="flip-inner" id="flip-inner">
-            
-            <!-- FRONT -->
-            <div class="flip-face flip-front">
-              <div class="card-text" id="card-front-text">Front of card</div>
-              <div class="flip-hint"><i class="fa-solid fa-hand-pointer"></i> Tap to flip (or press Space)</div>
-            </div>
-            
-            <!-- BACK -->
-            <div class="flip-face flip-back">
-              <div class="card-text" id="card-back-text">Back of card</div>
-              <div class="card-tags" id="card-tags-container"></div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="controls-bar">
-          <button class="btn btn-ghost" onclick="prevCard()" id="btn-prev">
-            <i class="fa-solid fa-arrow-left"></i> Prev
-          </button>
-          
-          <button class="btn btn-primary" onclick="toggleFlip()">
-            <i class="fa-solid fa-rotate"></i> Flip
-          </button>
-          
-          <button class="btn btn-ghost" onclick="nextCard()" id="btn-next">
-            Next <i class="fa-solid fa-arrow-right"></i>
-          </button>
-        </div>
-
+      <div class="controls-bar" style="display:flex; justify-content:center; gap:20px;">
+        <button class="btn btn-ghost" onclick="prev()">Prev</button>
+        <button class="btn btn-primary" onclick="next()">Next</button>
       </div>
     </div>
   </main>
 
-  <script src="js/data.js"></script>
-  <!-- Load Firebase Storage Module -->
   <script type="module" src="js/storage.js"></script>
-  
   <script>
-    let activeCards = [];
-    let currentIndex = 0;
-    let isFlipped = false;
-
-    document.addEventListener('DOMContentLoaded', async function () {
-      // 1. Sync from Cloud immediately to ensure we have the uploaded cards
-      if (window.syncCardsFromCloud) {
-        await window.syncCardsFromCloud();
-      }
-      
-      // 2. Fetch all local cards
-      const allCards = window.getCards();
-      
-      // 3. Check URL parameters to see what the user clicked
-      const urlParams = new URLSearchParams(window.location.search);
-      const filterChapter = urlParams.get('chapter');
-      const filterTopic = urlParams.get('topic');
-      const filterSubject = urlParams.get('subject');
-      const filterTag = urlParams.get('tag');
-
-      // 4. Filter the cards based on the URL
-      if (filterChapter) {
-        activeCards = allCards.filter(c => c.chapterId === filterChapter);
-      } else if (filterTopic) {
-        activeCards = allCards.filter(c => c.topicId === filterTopic);
-      } else if (filterSubject) {
-        activeCards = allCards.filter(c => c.subjectId === filterSubject);
-      } else if (filterTag) {
-        activeCards = allCards.filter(c => (c.tags || []).includes(filterTag));
-      } else {
-        // If no filter, load all cards
-        activeCards = allCards;
-      }
-
-      // Hide loading state
-      document.getElementById('loading-view').style.display = 'none';
-
-      // 5. Render UI
-      if (activeCards.length === 0) {
-        document.getElementById('empty-view').style.display = 'block';
-      } else {
-        document.getElementById('study-view').style.display = 'block';
-        renderCard(0);
-      }
+    let cards = []; let idx = 0;
+    document.addEventListener('DOMContentLoaded', async () => {
+      await window.syncCardsFromCloud();
+      cards = window.getCards();
+      render();
     });
 
-    function renderCard(index) {
-      if (activeCards.length === 0) return;
-      
-      const card = activeCards[index];
-      
-      // Ensure card faces front
-      if (isFlipped) {
-        document.getElementById('flip-container').classList.remove('flipped');
-        isFlipped = false;
-      }
-
-      // Update text
-      document.getElementById('card-front-text').innerHTML = card.front;
-      document.getElementById('card-back-text').innerHTML = card.back;
-
-      // Update Tags
-      const tagsHtml = (card.tags || []).map(tag => 
-        `<a href="flashcards.html?tag=${tag}" class="tag" onclick="event.stopPropagation()">${tag}</a>`
-      ).join('');
-      document.getElementById('card-tags-container').innerHTML = tagsHtml;
-
-      // Update Layer Badge (Yield)
-      const badge = document.getElementById('card-layer-badge');
-      if (card.layer === 1) {
-        badge.textContent = "High Yield";
-        badge.style.background = "var(--success-soft)";
-        badge.style.color = "var(--success)";
-      } else if (card.layer === 2) {
-        badge.textContent = "Core";
-        badge.style.background = "var(--warning-soft)";
-        badge.style.color = "var(--warning)";
-      } else {
-        badge.textContent = "Comprehensive";
-        badge.style.background = "var(--accent-soft)";
-        badge.style.color = "var(--accent)";
-      }
-
-      // Update Counters & Progress Bar
-      document.getElementById('card-counter').textContent = `Card ${index + 1} of ${activeCards.length}`;
-      const pct = ((index + 1) / activeCards.length) * 100;
-      document.getElementById('progress-fill').style.width = pct + '%';
-
-      // Disable/Enable Buttons
-      document.getElementById('btn-prev').disabled = (index === 0);
-      document.getElementById('btn-prev').style.opacity = (index === 0) ? '0.5' : '1';
-      
-      document.getElementById('btn-next').disabled = (index === activeCards.length - 1);
-      document.getElementById('btn-next').style.opacity = (index === activeCards.length - 1) ? '0.5' : '1';
+    function render() {
+      if(cards.length === 0) return;
+      document.getElementById('front').textContent = cards[idx].front;
+      document.getElementById('back').textContent = cards[idx].back;
+      document.getElementById('tags').innerHTML = (cards[idx].tags||[]).map(t => `<span class="tag">${t}</span>`).join('');
     }
 
-    function toggleFlip() {
-      const container = document.getElementById('flip-container');
-      isFlipped = !isFlipped;
-      if (isFlipped) {
-        container.classList.add('flipped');
-      } else {
-        container.classList.remove('flipped');
-      }
-    }
-
-    function nextCard() {
-      if (currentIndex < activeCards.length - 1) {
-        // Quick flip-back animation trick if currently looking at back
-        if (isFlipped) {
-            document.getElementById('flip-container').classList.remove('flipped');
-            isFlipped = false;
-            setTimeout(() => {
-                currentIndex++;
-                renderCard(currentIndex);
-            }, 250); // wait for flip animation before changing text
-        } else {
-            currentIndex++;
-            renderCard(currentIndex);
-        }
-      }
-    }
-
-    function prevCard() {
-      if (currentIndex > 0) {
-        if (isFlipped) {
-            document.getElementById('flip-container').classList.remove('flipped');
-            isFlipped = false;
-            setTimeout(() => {
-                currentIndex--;
-                renderCard(currentIndex);
-            }, 250);
-        } else {
-            currentIndex--;
-            renderCard(currentIndex);
-        }
-      }
-    }
-
-    // Keyboard Shortcuts
-    document.addEventListener('keydown', function(event) {
-      if (activeCards.length === 0) return;
-      
-      if (event.code === 'Space') {
-        event.preventDefault(); // Prevent page scroll
-        toggleFlip();
-      } else if (event.code === 'ArrowRight') {
-        nextCard();
-      } else if (event.code === 'ArrowLeft') {
-        prevCard();
-      }
-    });
-
+    function next() { if(idx < cards.length-1) { idx++; render(); } }
+    function prev() { if(idx > 0) { idx--; render(); } }
   </script>
 </body>
 </html>
-
