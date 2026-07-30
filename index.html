@@ -288,7 +288,23 @@
       renderStats();
       renderSubjectOverview();
     });
+    // 1. The function that triggers when you pick a new theme
+    function changeTheme(themeId) {
+      // Update the HTML attribute to swap the CSS
+      document.documentElement.setAttribute('data-theme', themeId);
+      
+      // Save it to localStorage using your existing storage.js function
+      window.setTheme(themeId);
+    }
 
+    // 2. Add this inside your existing document.addEventListener('DOMContentLoaded', ...)
+    // This ensures the dropdown shows the correct theme when you refresh the page
+    const currentTheme = window.getTheme();
+    const themeDropdown = document.getElementById('theme-selector');
+    if (themeDropdown) {
+      themeDropdown.value = currentTheme;
+    }
+    
     /**
      * Renders the top stats by pulling from storage.js getStats()
      */
