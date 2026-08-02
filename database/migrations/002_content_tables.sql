@@ -57,7 +57,7 @@ create table notes (
 
     title text not null,
 
-    content text not null,
+    markdown text not null,
 
     created_at timestamptz not null default now(),
 
