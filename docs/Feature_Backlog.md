@@ -1,0 +1,51 @@
+Version
+Feature
+Status
+V1
+Authentication
+Planned
+V1
+Subjects
+Planned
+V1
+Chapters
+Planned
+V1
+Topics
+Planned
+V1
+Flashcards
+Planned
+V1
+Notes
+Planned
+V1
+Tags
+Planned
+V1
+Bookmarks
+Planned
+V1
+Progress
+Planned
+V2
+Quiz
+Backlog
+V2
+PYQ Manager
+Backlog
+V2
+Weak Tag Analytics
+Backlog
+V3
+Multi-university
+Future
+V3
+AI Tutor
+Future
+V3
+Clinical Cases
+Future
+V3
+Viva
+Future
