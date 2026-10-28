@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concentric — Chapter</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <script>
+    (function () {
+      const theme = localStorage.getItem('mimi_theme') || 'white-blue';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+
+    function changeTheme(themeId) {
+      document.documentElement.setAttribute('data-theme', themeId);
+      localStorage.setItem('mimi_theme', themeId);
+    }
+  </script>
+
+  <header class="app-header">
+    <div class="container">
+      <a href="index.html" class="app-logo">
+        <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+        Concentric
+      </a>
+      <div class="header-right">
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link active">Dashboard</a>
+          <a href="flashcards.html" class="nav-link">Flashcards</a>
+          <a href="notes.html" class="nav-link">Notes</a>
+          <a href="quiz.html" class="nav-link">Quiz</a>
+        </nav>
+        <select class="theme-select" id="theme-selector" onchange="changeTheme(this.value)">
+          <option value="white-blue">White & Blue</option>
+          <option value="notebook">Ruled Paper</option>
+          <option value="chalkboard">Chalkboard</option>
+          <option value="scroll">Parchment</option>
+          <option value="sepia">Sepia</option>
+          <option value="dark">Midnight</option>
+          <option value="academia">Academia</option>
+          <option value="forest">Forest</option>
+          <option value="rose">Rose Quartz</option>
+          <option value="blueprint">Blueprint</option>
+          <option value="newsprint">Newsprint</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Dashboard</a>
+        <span class="sep">→</span>
+        <span id="subject-breadcrumb-link">Subject</span>
+        <span class="sep">→</span>
+        <span class="current">Chapter</span>
+      </nav>
+
+      <section id="chapter-page" class="page-shell"></section>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/chapter-page.js"></script>
+</body>
+</html>
