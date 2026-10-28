@@ -1,138 +1,269 @@
-(function () {
-  function getParams() {
-    return new URLSearchParams(window.location.search);
-  }
-
-  function findSubject() {
-    const subjectId = getParams().get('subject');
-    if (!subjectId) return null;
-    return (window.SUBJECTS || []).find(function (subject) {
-      return subject && subject.id === subjectId;
-    }) || null;
-  }
-
-  function findChapter(subject) {
-    const chapterId = getParams().get('chapter');
-    if (!subject || !chapterId || !Array.isArray(subject.sections)) return null;
-
-    for (var i = 0; i < subject.sections.length; i++) {
-      const section = subject.sections[i];
-      if (!Array.isArray(section.chapters)) continue;
-      const chapter = section.chapters.find(function (item) {
-        return item && item.id === chapterId;
-      });
-      if (chapter) return chapter;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedCards — Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/kode-themes.css">
+  <style>
+    .subject-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 20px;
     }
 
-    return null;
-  }
+    .subject-card-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
 
-  function getActivityMeta(activityKey) {
-    const map = {
-      mcqs: {
-        title: 'MCQs',
-        description: 'Practice concept checks and self-assessment questions for this chapter.',
-        icon: 'fa-solid fa-circle-question'
-      },
-      flashcards: {
-        title: 'Flashcards',
-        description: 'The existing flashcards experience remains available and is preserved for this milestone.',
-        icon: 'fa-solid fa-clone'
-      },
-      'clinical-cases': {
-        title: 'Clinical Cases',
-        description: 'Clinical case workflows are planned in a later milestone, but this placeholder keeps the chapter linked and identifiable.',
-        icon: 'fa-solid fa-kit-medical'
-      },
-      notes: {
-        title: 'Notes & Essays',
-        description: 'Notes and essays are not yet populated for this chapter, but the study slot is ready for future content.',
-        icon: 'fa-solid fa-file-lines'
-      },
-      resources: {
-        title: 'Additional Resources',
-        description: 'Reference material and supporting resources are planned after the chapter navigation flow is complete.',
-        icon: 'fa-solid fa-book-open-reader'
+    .subject-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      min-height: 170px;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .subject-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--accent);
+    }
+
+    .subject-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .subject-card-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+    }
+
+    .subject-card-arrow {
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+
+    .subject-card-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+
+    .subject-card-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .subject-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -30px -30px auto;
+      width: 120px;
+      height: 120px;
+      background: rgba(255, 160, 122, 0.08);
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    (function() {
+      var theme = localStorage.getItem('mimi_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
+  <div id="toast-container"></div>
+
+  <header class="app-header">
+    <div class="container">
+      <a href="index.html" class="app-logo">
+        <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+        Concentric
+      </a>
+      <div class="header-right">
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link active">Dashboard</a>
+          <a href="flashcards.html" class="nav-link">Flashcards</a>
+          <a href="notes.html" class="nav-link">Notes</a>
+          <a href="quiz.html" class="nav-link">Quiz</a>
+        </nav>
+        <select class="theme-select" id="theme-selector" onchange="changeTheme(this.value)">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="white-blue">White & Blue</option>
+          <option value="notebook">Ruled Paper</option>
+          <option value="chalkboard">Chalkboard</option>
+          <option value="scroll">Parchment</option>
+          <option value="sepia">Sepia</option>
+          <option value="academia">Academia</option>
+          <option value="forest">Forest</option>
+          <option value="rose">Rose Quartz</option>
+          <option value="blueprint">Blueprint</option>
+          <option value="newsprint">Newsprint</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="welcome">
+        <h1>Medical mastery in steady, focused layers</h1>
+        <p>Study with warm, low-glare visuals built for deep focus and long revision sessions.</p>
+      </section>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label"><i class="fa-solid fa-clone"></i> Total Cards</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-sub">Across all subjects</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label"><i class="fa-solid fa-star"></i> High Yield</div>
+          <div class="stat-value" style="color: var(--success);" id="stat-hy">0</div>
+          <div class="stat-sub">Must-know concepts</div>
+        </div>
+
+        <div class="stat-card" style="display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
+          <button class="btn btn-ghost" onclick="handleRefreshStats()">
+            <i class="fa-solid fa-arrows-rotate"></i> Refresh Stats
+          </button>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2>Your Subjects</h2>
+        <span style="font-size: 13px; color: var(--text-muted);" id="subject-count"></span>
+      </div>
+
+      <div id="subject-overview" class="subject-grid"></div>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script type="module" src="js/storage.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      renderStats();
+      renderSubjectOverview();
+      const currentTheme = window.getTheme();
+      const themeDropdown = document.getElementById('theme-selector');
+      if (themeDropdown) {
+        themeDropdown.value = currentTheme === 'light' || currentTheme === 'dark' ? currentTheme : 'dark';
       }
-    };
+    });
 
-    return map[activityKey] || {
-      title: 'Learning Activity',
-      description: 'This activity is not available yet for this chapter.',
-      icon: 'fa-solid fa-book-open'
-    };
-  }
-
-  function renderActivityPage() {
-    const root = document.getElementById('activity-page');
-    if (!root) return;
-
-    const subject = findSubject();
-    const chapter = subject ? findChapter(subject) : null;
-    const activityKey = getParams().get('activity') || 'mcqs';
-    const meta = getActivityMeta(activityKey);
-
-    const subjectBreadcrumb = document.getElementById('subject-breadcrumb');
-    if (subjectBreadcrumb) {
-      subjectBreadcrumb.innerHTML = subject
-        ? '<a href="subject.html?subject=' + encodeURIComponent(subject.id) + '">' + (subject.name || 'Subject') + '</a>'
-        : 'Subject';
+    function changeTheme(themeId) {
+      document.documentElement.setAttribute('data-theme', themeId);
+      window.setTheme(themeId);
     }
 
-    const chapterBreadcrumb = document.getElementById('chapter-breadcrumb');
-    if (chapterBreadcrumb) {
-      chapterBreadcrumb.innerHTML = chapter
-        ? '<a href="chapter.html?subject=' + encodeURIComponent(subject.id) + '&chapter=' + encodeURIComponent(chapter.id) + '">' + (chapter.name || 'Chapter') + '</a>'
-        : 'Chapter';
+    function renderStats() {
+      const stats = getStats();
+      animateCount('stat-total', stats.totalCards || 0);
+      animateCount('stat-hy', stats.highYieldCards || 0);
     }
 
-    const activityBreadcrumb = document.getElementById('activity-breadcrumb');
-    if (activityBreadcrumb) {
-      activityBreadcrumb.textContent = meta.title;
+    function handleRefreshStats() {
+      refreshStats();
+      renderStats();
+      renderSubjectOverview();
+      showToast('Card counts refreshed successfully', 'success');
     }
 
-    if (!subject || !chapter) {
-      root.innerHTML = [
-        '<div class="empty-state">',
-        '  <div class="empty-state-icon"><i class="fa-solid fa-circle-xmark"></i></div>',
-        '  <h2>Activity unavailable</h2>',
-        '  <p>The selected subject or chapter could not be found.</p>',
-        '  <div class="empty-state-actions">',
-        '    <a class="btn btn-primary" href="index.html"><i class="fa-solid fa-house"></i> Back to dashboard</a>',
-        '  </div>',
-        '</div>'
-      ].join('');
-      return;
+    function renderSubjectOverview() {
+      const container = document.getElementById('subject-overview');
+      const subjectCount = document.getElementById('subject-count');
+
+      if (!container || !subjectCount) return;
+
+      const allSubjects = Array.isArray(SUBJECTS) ? SUBJECTS : [];
+      subjectCount.textContent = `${allSubjects.length} subjects`;
+
+      container.innerHTML = allSubjects.map(subject => {
+        const chapterCount = (subject.sections || []).reduce((count, section) => {
+          return count + ((section.chapters || []).length || 0);
+        }, 0);
+
+        const badge = (subject.code || subject.name.slice(0, 2)).toUpperCase();
+
+        return `
+          <a href="subject.html?subject=${encodeURIComponent(subject.id)}" class="subject-card-link">
+            <div class="subject-card">
+              <div class="subject-card-header">
+                <span class="subject-card-badge">${badge}</span>
+                <span class="subject-card-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+              </div>
+              <div class="subject-card-name">${subject.name}</div>
+              <div class="subject-card-meta">${chapterCount} chapters</div>
+            </div>
+          </a>
+        `;
+      }).join('');
     }
 
-    const backHref = 'chapter.html?subject=' + encodeURIComponent(subject.id) + '&chapter=' + encodeURIComponent(chapter.id);
+    function animateCount(id, target) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (target === 0) { el.textContent = '0'; return; }
 
-    root.innerHTML = [
-      '<div class="page-header">',
-      '  <div class="page-header-grid">',
-      '    <div>',
-      '      <div class="subject-meta">',
-      '        <span class="subject-chip">' + (subject.code || 'SUB') + '</span>',
-      '        <span class="subject-chip secondary">' + meta.title + '</span>',
-      '      </div>',
-      '      <h1>' + meta.title + '</h1>',
-      '      <p class="page-description">' + chapter.name + ' • ' + subject.name + '</p>',
-      '    </div>',
-      '    <div class="header-actions">',
-      '      <a class="btn btn-ghost" href="' + backHref + '"><i class="fa-solid fa-arrow-left"></i> Back to chapter</a>',
-      '    </div>',
-      '  </div>',
-      '</div>',
-      '<div class="empty-state">',
-      '  <div class="empty-state-icon"><i class="' + meta.icon + '"></i></div>',
-      '  <h2>' + meta.title + ' coming soon</h2>',
-      '  <p>' + meta.description + '</p>',
-      '  <div class="empty-state-actions">',
-      '    <a class="btn btn-primary" href="' + backHref + '"><i class="fa-solid fa-arrow-left"></i> Return to chapter</a>',
-      '  </div>',
-      '</div>'
-    ].join('');
-  }
+      let start = 0;
+      const duration = 700;
+      let startTime = null;
 
-  document.addEventListener('DOMContentLoaded', renderActivityPage);
-})();
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        el.textContent = Math.round(progress * target).toLocaleString();
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = msg;
+      container.appendChild(toast);
+      requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

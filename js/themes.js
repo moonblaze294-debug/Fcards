@@ -1,229 +1,200 @@
-/*
- * THEMES.JS
- * Applies theme by setting data-theme attribute on <html>.
- * Theme list for the dropdown is defined here too.
- *
- * Each theme carries:
- *   id       – matches data-theme value in CSS
- *   name     – display label
- *   icon     – Font Awesome class
- *   palette  – 3 swatches [bg, surface, accent] for live previews in the dropdown
- *   mood     – one-line flavour text shown as a subtitle in richer UIs
- */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Session</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/kode-themes.css">
+  <link rel="stylesheet" href="css/flashcards.css">
+</head>
+<body>
+  <script>
+    (function () {
+      const theme = localStorage.getItem('mimi_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
 
-const THEMES = [
-  {
-    id: 'white-blue',
-    name: 'Clean Slate',
-    icon: 'fa-solid fa-droplet',
-    palette: ['#ffffff', '#e8f0fe', '#3b5bdb'],
-    mood: 'Clear head, clear cards.'
-  },
-  {
-    id: 'notebook',
-    name: 'Ruled Paper',
-    icon: 'fa-solid fa-book-open',
-    palette: ['#f9f7f0', '#e8e4d4', '#2c4a8c'],
-    mood: 'Like the margins of a favourite notebook.'
-  },
-  {
-    id: 'chalkboard',
-    name: 'Chalkboard',
-    icon: 'fa-solid fa-chalkboard',
-    palette: ['#2d3a2e', '#3d4e3e', '#f0e68c'],
-    mood: 'The classic classroom surface.'
-  },
-  {
-    id: 'scroll',
-    name: 'Parchment',
-    icon: 'fa-solid fa-scroll',
-    palette: ['#f4e9c9', '#e8d5a0', '#5c3d1e'],
-    mood: 'Ancient wisdom, modern recall.'
-  },
-  {
-    id: 'sepia',
-    name: 'Sepia',
-    icon: 'fa-solid fa-sun',
-    palette: ['#f5ead3', '#ddc9a3', '#8b5e3c'],
-    mood: 'Warm like an afternoon reading lamp.'
-  },
-  {
-    id: 'dark',
-    name: 'Midnight',
-    icon: 'fa-solid fa-moon',
-    palette: ['#0f1117', '#1a1d2e', '#818cf8'],
-    mood: 'Study without disturbing the night.'
-  },
-  {
-    id: 'academia',
-    name: 'Academia',
-    icon: 'fa-solid fa-graduation-cap',
-    palette: ['#f2ede4', '#ddd5c8', '#7c3d11'],
-    mood: 'Dark oak, coffee rings, highlighter.'
-  },
-  {
-    id: 'forest',
-    name: 'Forest',
-    icon: 'fa-solid fa-tree',
-    palette: ['#1e2d1e', '#2a3d2a', '#86efac'],
-    mood: 'Focus as deep as old-growth quiet.'
-  },
-  {
-    id: 'rose',
-    name: 'Rose Quartz',
-    icon: 'fa-solid fa-heart',
-    palette: ['#fff1f3', '#ffd6db', '#be185d'],
-    mood: 'Soft light, sharp memory.'
-  },
-  {
-    id: 'blueprint',
-    name: 'Blueprint',
-    icon: 'fa-solid fa-drafting-compass',
-    palette: ['#1a2744', '#1e3a8a', '#93c5fd'],
-    mood: 'Precision-drafted, engineer-brained.'
-  },
-  {
-    id: 'newsprint',
-    name: 'Newsprint',
-    icon: 'fa-solid fa-newspaper',
-    palette: ['#e8e4dc', '#d4cfc4', '#1a1a1a'],
-    mood: 'High-contrast, distraction-free.'
-  }
-];
+    function changeTheme(themeId) {
+      document.documentElement.setAttribute('data-theme', themeId);
+      localStorage.setItem('mimi_theme', themeId);
+    }
+  </script>
 
-/* ─── Core theme functions ──────────────────────────────────────────── */
+  <header class="app-header">
+    <div class="container">
+      <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:16px;">
+        <a href="index.html" class="app-logo" style="display:flex; align-items:center; gap:10px; color:var(--text);">
+          <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+          Concentric
+        </a>
+        <div class="header-right">
+          <nav class="nav-links">
+            <a href="index.html" class="nav-link">Dashboard</a>
+            <a href="flashcards.html" class="nav-link active">Flashcards</a>
+            <a href="notes.html" class="nav-link">Notes</a>
+            <a href="quiz.html" class="nav-link">Quiz</a>
+          </nav>
+          <select class="theme-select" id="theme-selector" onchange="changeTheme(this.value)">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="white-blue">White & Blue</option>
+            <option value="notebook">Ruled Paper</option>
+            <option value="chalkboard">Chalkboard</option>
+            <option value="scroll">Parchment</option>
+            <option value="sepia">Sepia</option>
+            <option value="academia">Academia</option>
+            <option value="forest">Forest</option>
+            <option value="rose">Rose Quartz</option>
+            <option value="blueprint">Blueprint</option>
+            <option value="newsprint">Newsprint</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </header>
 
-function applyTheme(themeId) {
-  const valid = THEMES.find(t => t.id === themeId);
-  if (!valid) themeId = 'white-blue';
-  document.documentElement.setAttribute('data-theme', themeId);
-  setTheme(themeId);
-}
+  <main class="container">
+    <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-top: 24px;">
+      <a href="index.html">Dashboard</a>
+      <span class="sep">→</span>
+      <span id="flashcard-subject">Subject</span>
+      <span class="sep">→</span>
+      <span id="flashcard-chapter">Chapter</span>
+      <span class="sep">→</span>
+      <span class="current">Flashcards</span>
+    </nav>
 
-function initTheme() {
-  applyTheme(getTheme());
-}
+    <div class="page-header" style="margin-top: 20px;">
+      <div class="page-header-grid">
+        <div>
+          <div class="subject-meta">
+            <span class="subject-chip">Study</span>
+            <span class="subject-chip secondary" id="flashcard-status">Ready</span>
+          </div>
+          <h1 id="flashcard-title">Flashcards</h1>
+          <p class="page-description" id="flashcard-description">Review high-yield facts and recall prompts.</p>
+        </div>
+        <div class="header-actions">
+          <a class="btn btn-ghost" id="flashcard-back-link" href="index.html"><i class="fa-solid fa-arrow-left"></i> Back</a>
+        </div>
+      </div>
+    </div>
 
-function getThemeMeta(themeId) {
-  return THEMES.find(t => t.id === themeId) ?? THEMES[0];
-}
+    <div class="flashcard-wrapper">
+      <div class="flip-container" id="flip-container" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="card-text" id="front">Loading...</div>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="card-text" id="back"></div>
+            <div class="card-tags" id="tags"></div>
+          </div>
+        </div>
+      </div>
 
-/* ─── Dropdown builder ───────────────────────────────────────────────
- * Basic mode:   pass only selectEl  → plain <select> as before
- * Swatch mode:  pass a container div → renders a custom swatch picker
- * ──────────────────────────────────────────────────────────────────── */
+      <div class="controls-bar" style="display:flex; justify-content:center; gap:20px;">
+        <button class="btn btn-ghost" onclick="prev()">Prev</button>
+        <button class="btn btn-primary" onclick="next()">Next</button>
+      </div>
+    </div>
+  </main>
 
-function buildThemeDropdown(selectEl) {
-  const current = getTheme();
-  selectEl.innerHTML = '';
-  THEMES.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t.id;
-    opt.textContent = t.name;
-    if (t.id === current) opt.selected = true;
-    selectEl.appendChild(opt);
-  });
-  selectEl.addEventListener('change', function () {
-    applyTheme(this.value);
-  });
-}
+  <script type="module" src="js/storage.js"></script>
+  <script src="js/data.js"></script>
+  <script>
+    let cards = [];
+    let idx = 0;
 
-/*
- * buildThemeSwatchPicker(containerEl)
- *
- * Renders a visual swatch grid instead of a plain <select>.
- * Each card shows the 3-colour palette, icon, name, and mood line.
- * Drop this into any settings panel or modal that has enough room.
- *
- * Requires the .theme-swatch-* CSS classes defined in your stylesheet
- * (see recommended additions below in the comment block).
- */
-function buildThemeSwatchPicker(containerEl) {
-  const current = getTheme();
-  containerEl.innerHTML = '';
-  containerEl.className = 'theme-swatch-grid';
+    function getQueryParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
 
-  THEMES.forEach(t => {
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'theme-swatch-card' + (t.id === current ? ' is-active' : '');
-    card.dataset.themeId = t.id;
-    card.setAttribute('aria-pressed', t.id === current ? 'true' : 'false');
-    card.setAttribute('aria-label', `Apply ${t.name} theme`);
-    card.title = t.mood;
+    function getSubject() {
+      const subjectId = getQueryParam('subject');
+      if (!subjectId) return null;
+      return (window.SUBJECTS || []).find(function (subject) {
+        return subject && subject.id === subjectId;
+      }) || null;
+    }
 
-    // Colour strip
-    const strip = document.createElement('div');
-    strip.className = 'theme-swatch-strip';
-    t.palette.forEach(hex => {
-      const swatch = document.createElement('span');
-      swatch.className = 'theme-swatch-dot';
-      swatch.style.background = hex;
-      strip.appendChild(swatch);
+    function getChapter(subject) {
+      const chapterId = getQueryParam('chapter');
+      if (!subject || !chapterId || !Array.isArray(subject.sections)) return null;
+      for (let i = 0; i < subject.sections.length; i++) {
+        const section = subject.sections[i];
+        if (!Array.isArray(section.chapters)) continue;
+        const chapter = section.chapters.find(function (item) {
+          return item && item.id === chapterId;
+        });
+        if (chapter) return chapter;
+      }
+      return null;
+    }
+
+    function setChapterHeader() {
+      const subject = getSubject();
+      const chapter = subject ? getChapter(subject) : null;
+      const subjectEl = document.getElementById('flashcard-subject');
+      const chapterEl = document.getElementById('flashcard-chapter');
+      const titleEl = document.getElementById('flashcard-title');
+      const descriptionEl = document.getElementById('flashcard-description');
+      const statusEl = document.getElementById('flashcard-status');
+      const backLink = document.getElementById('flashcard-back-link');
+
+      if (subject && chapter) {
+        subjectEl.textContent = subject.name;
+        chapterEl.textContent = chapter.name;
+        titleEl.textContent = chapter.name + ' • Flashcards';
+        descriptionEl.textContent = 'Review key concepts for ' + chapter.name + ' in ' + subject.name + '.';
+        statusEl.textContent = 'Chapter linked';
+        backLink.href = 'chapter.html?subject=' + encodeURIComponent(subject.id) + '&chapter=' + encodeURIComponent(chapter.id);
+      } else if (subject) {
+        subjectEl.textContent = subject.name;
+        chapterEl.textContent = 'General study';
+        titleEl.textContent = 'Flashcards';
+        descriptionEl.textContent = 'Review the ' + subject.name + ' study set.';
+        statusEl.textContent = 'Subject view';
+      } else {
+        subjectEl.textContent = 'Subject';
+        chapterEl.textContent = 'Chapter';
+        titleEl.textContent = 'Flashcards';
+        descriptionEl.textContent = 'Review high-yield facts and recall prompts.';
+        statusEl.textContent = 'Ready';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+      setChapterHeader();
+      await window.syncCardsFromCloud();
+      cards = window.getCards();
+      render();
     });
 
-    // Label row
-    const label = document.createElement('div');
-    label.className = 'theme-swatch-label';
-    label.innerHTML =
-      `<i class="${t.icon}" aria-hidden="true"></i>` +
-      `<span class="theme-swatch-name">${t.name}</span>`;
+    function render() {
+      if (cards.length === 0) return;
+      document.getElementById('front').textContent = cards[idx].front;
+      document.getElementById('back').textContent = cards[idx].back;
+      document.getElementById('tags').innerHTML = (cards[idx].tags || []).map(function (tag) {
+        return '<span class="tag">' + tag + '</span>';
+      }).join('');
+    }
 
-    card.appendChild(strip);
-    card.appendChild(label);
-    containerEl.appendChild(card);
+    function next() {
+      if (idx < cards.length - 1) {
+        idx++;
+        render();
+      }
+    }
 
-    card.addEventListener('click', () => {
-      containerEl.querySelectorAll('.theme-swatch-card').forEach(c => {
-        c.classList.remove('is-active');
-        c.setAttribute('aria-pressed', 'false');
-      });
-      card.classList.add('is-active');
-      card.setAttribute('aria-pressed', 'true');
-      applyTheme(t.id);
-    });
-  });
-}
-
-/*
- * ─── Suggested CSS for the swatch picker ────────────────────────────
- *
- * .theme-swatch-grid {
- *   display: grid;
- *   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
- *   gap: 0.5rem;
- * }
- * .theme-swatch-card {
- *   display: flex;
- *   flex-direction: column;
- *   gap: 0.35rem;
- *   padding: 0.5rem;
- *   border: 2px solid transparent;
- *   border-radius: 8px;
- *   background: var(--surface);
- *   cursor: pointer;
- *   transition: border-color 0.15s;
- * }
- * .theme-swatch-card:hover       { border-color: var(--accent); }
- * .theme-swatch-card.is-active   { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
- * .theme-swatch-strip {
- *   display: flex;
- *   gap: 3px;
- *   height: 24px;
- *   border-radius: 4px;
- *   overflow: hidden;
- * }
- * .theme-swatch-dot {
- *   flex: 1;
- * }
- * .theme-swatch-label {
- *   display: flex;
- *   align-items: center;
- *   gap: 0.35rem;
- *   font-size: 0.75rem;
- *   color: var(--text-muted);
- * }
- * .theme-swatch-name { font-weight: 600; color: var(--text); }
- *
- * ──────────────────────────────────────────────────────────────────── */
-
+    function prev() {
+      if (idx > 0) {
+        idx--;
+        render();
+      }
+    }
+  </script>
+</body>
+</html>
