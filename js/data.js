@@ -308,3 +308,5 @@ const SUBJECTS = [
     }]
   }
 ];
+
+window.SUBJECTS = SUBJECTS;

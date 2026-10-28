@@ -3,54 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Study Session</title>
+  <title>Concentric — Activity</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/flashcards.css">
 </head>
 <body>
+  <script>
+    (function () {
+      const theme = localStorage.getItem('mimi_theme') || 'white-blue';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
 
-  <header class="app-header"><div class="container"><h2>Flashcards</h2></div></header>
+    function changeTheme(themeId) {
+      document.documentElement.setAttribute('data-theme', themeId);
+      localStorage.setItem('mimi_theme', themeId);
+    }
 
-  <main class="container">
-    <div class="flashcard-wrapper">
-      <div class="flip-container" id="flip-container" onclick="this.classList.toggle('flipped')">
-        <div class="flip-inner">
-          <div class="flip-face flip-front">
-            <div class="card-text" id="front">Loading...</div>
-          </div>
-          <div class="flip-face flip-back">
-            <div class="card-text" id="back"></div>
-            <div class="card-tags" id="tags"></div>
-          </div>
-        </div>
+    document.addEventListener('DOMContentLoaded', function () {
+      const themeDropdown = document.getElementById('theme-selector');
+      if (themeDropdown) {
+        themeDropdown.value = localStorage.getItem('mimi_theme') || 'white-blue';
+      }
+    });
+  </script>
+
+  <header class="app-header">
+    <div class="container">
+      <a href="index.html" class="app-logo">
+        <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+        Concentric
+      </a>
+      <div class="header-right">
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link active">Dashboard</a>
+          <a href="flashcards.html" class="nav-link">Flashcards</a>
+          <a href="notes.html" class="nav-link">Notes</a>
+          <a href="quiz.html" class="nav-link">Quiz</a>
+        </nav>
+        <select class="theme-select" id="theme-selector" onchange="changeTheme(this.value)">
+          <option value="white-blue">White & Blue</option>
+          <option value="notebook">Ruled Paper</option>
+          <option value="chalkboard">Chalkboard</option>
+          <option value="scroll">Parchment</option>
+          <option value="sepia">Sepia</option>
+          <option value="dark">Midnight</option>
+          <option value="academia">Academia</option>
+          <option value="forest">Forest</option>
+          <option value="rose">Rose Quartz</option>
+          <option value="blueprint">Blueprint</option>
+          <option value="newsprint">Newsprint</option>
+        </select>
       </div>
-      
-      <div class="controls-bar" style="display:flex; justify-content:center; gap:20px;">
-        <button class="btn btn-ghost" onclick="prev()">Prev</button>
-        <button class="btn btn-primary" onclick="next()">Next</button>
-      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Dashboard</a>
+        <span class="sep">→</span>
+        <span id="subject-breadcrumb">Subject</span>
+        <span class="sep">→</span>
+        <span id="chapter-breadcrumb">Chapter</span>
+        <span class="sep">→</span>
+        <span id="activity-breadcrumb" class="current">Activity</span>
+      </nav>
+
+      <section id="activity-page" class="page-shell"></section>
     </div>
   </main>
 
-  <script type="module" src="js/storage.js"></script>
-  <script>
-    let cards = []; let idx = 0;
-    document.addEventListener('DOMContentLoaded', async () => {
-      await window.syncCardsFromCloud();
-      cards = window.getCards();
-      render();
-    });
-
-    function render() {
-      if(cards.length === 0) return;
-      document.getElementById('front').textContent = cards[idx].front;
-      document.getElementById('back').textContent = cards[idx].back;
-      document.getElementById('tags').innerHTML = (cards[idx].tags||[]).map(t => `<span class="tag">${t}</span>`).join('');
-    }
-
-    function next() { if(idx < cards.length-1) { idx++; render(); } }
-    function prev() { if(idx > 0) { idx--; render(); } }
-  </script>
+  <script src="js/data.js"></script>
+  <script src="js/activity-page.js"></script>
 </body>
 </html>

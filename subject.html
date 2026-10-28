@@ -1,68 +1,138 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Concentric — Subject</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-  <script>
-    (function () {
-      const theme = localStorage.getItem('mimi_theme') || 'white-blue';
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
+(function () {
+  function getParams() {
+    return new URLSearchParams(window.location.search);
+  }
 
-    function changeTheme(themeId) {
-      document.documentElement.setAttribute('data-theme', themeId);
-      localStorage.setItem('mimi_theme', themeId);
+  function findSubject() {
+    const subjectId = getParams().get('subject');
+    if (!subjectId) return null;
+    return (window.SUBJECTS || []).find(function (subject) {
+      return subject && subject.id === subjectId;
+    }) || null;
+  }
+
+  function findChapter(subject) {
+    const chapterId = getParams().get('chapter');
+    if (!subject || !chapterId || !Array.isArray(subject.sections)) return null;
+
+    for (var i = 0; i < subject.sections.length; i++) {
+      const section = subject.sections[i];
+      if (!Array.isArray(section.chapters)) continue;
+      const chapter = section.chapters.find(function (item) {
+        return item && item.id === chapterId;
+      });
+      if (chapter) return chapter;
     }
-  </script>
 
-  <header class="app-header">
-    <div class="container">
-      <a href="index.html" class="app-logo">
-        <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
-        Concentric
-      </a>
-      <div class="header-right">
-        <nav class="nav-links">
-          <a href="index.html" class="nav-link active">Dashboard</a>
-          <a href="flashcards.html" class="nav-link">Flashcards</a>
-          <a href="notes.html" class="nav-link">Notes</a>
-          <a href="quiz.html" class="nav-link">Quiz</a>
-        </nav>
-        <select class="theme-select" id="theme-selector" onchange="changeTheme(this.value)">
-          <option value="white-blue">White & Blue</option>
-          <option value="notebook">Ruled Paper</option>
-          <option value="chalkboard">Chalkboard</option>
-          <option value="scroll">Parchment</option>
-          <option value="sepia">Sepia</option>
-          <option value="dark">Midnight</option>
-          <option value="academia">Academia</option>
-          <option value="forest">Forest</option>
-          <option value="rose">Rose Quartz</option>
-          <option value="blueprint">Blueprint</option>
-          <option value="newsprint">Newsprint</option>
-        </select>
-      </div>
-    </div>
-  </header>
+    return null;
+  }
 
-  <main>
-    <div class="container">
-      <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="index.html">Dashboard</a>
-        <span class="sep">→</span>
-        <span class="current">Subject</span>
-      </nav>
+  function getActivityMeta(activityKey) {
+    const map = {
+      mcqs: {
+        title: 'MCQs',
+        description: 'Practice concept checks and self-assessment questions for this chapter.',
+        icon: 'fa-solid fa-circle-question'
+      },
+      flashcards: {
+        title: 'Flashcards',
+        description: 'The existing flashcards experience remains available and is preserved for this milestone.',
+        icon: 'fa-solid fa-clone'
+      },
+      'clinical-cases': {
+        title: 'Clinical Cases',
+        description: 'Clinical case workflows are planned in a later milestone, but this placeholder keeps the chapter linked and identifiable.',
+        icon: 'fa-solid fa-kit-medical'
+      },
+      notes: {
+        title: 'Notes & Essays',
+        description: 'Notes and essays are not yet populated for this chapter, but the study slot is ready for future content.',
+        icon: 'fa-solid fa-file-lines'
+      },
+      resources: {
+        title: 'Additional Resources',
+        description: 'Reference material and supporting resources are planned after the chapter navigation flow is complete.',
+        icon: 'fa-solid fa-book-open-reader'
+      }
+    };
 
-      <section id="subject-page" class="page-shell"></section>
-    </div>
-  </main>
+    return map[activityKey] || {
+      title: 'Learning Activity',
+      description: 'This activity is not available yet for this chapter.',
+      icon: 'fa-solid fa-book-open'
+    };
+  }
 
-  <script src="js/data.js"></script>
-  <script src="js/subject-page.js"></script>
-</body>
-</html>
+  function renderActivityPage() {
+    const root = document.getElementById('activity-page');
+    if (!root) return;
+
+    const subject = findSubject();
+    const chapter = subject ? findChapter(subject) : null;
+    const activityKey = getParams().get('activity') || 'mcqs';
+    const meta = getActivityMeta(activityKey);
+
+    const subjectBreadcrumb = document.getElementById('subject-breadcrumb');
+    if (subjectBreadcrumb) {
+      subjectBreadcrumb.innerHTML = subject
+        ? '<a href="subject.html?subject=' + encodeURIComponent(subject.id) + '">' + (subject.name || 'Subject') + '</a>'
+        : 'Subject';
+    }
+
+    const chapterBreadcrumb = document.getElementById('chapter-breadcrumb');
+    if (chapterBreadcrumb) {
+      chapterBreadcrumb.innerHTML = chapter
+        ? '<a href="chapter.html?subject=' + encodeURIComponent(subject.id) + '&chapter=' + encodeURIComponent(chapter.id) + '">' + (chapter.name || 'Chapter') + '</a>'
+        : 'Chapter';
+    }
+
+    const activityBreadcrumb = document.getElementById('activity-breadcrumb');
+    if (activityBreadcrumb) {
+      activityBreadcrumb.textContent = meta.title;
+    }
+
+    if (!subject || !chapter) {
+      root.innerHTML = [
+        '<div class="empty-state">',
+        '  <div class="empty-state-icon"><i class="fa-solid fa-circle-xmark"></i></div>',
+        '  <h2>Activity unavailable</h2>',
+        '  <p>The selected subject or chapter could not be found.</p>',
+        '  <div class="empty-state-actions">',
+        '    <a class="btn btn-primary" href="index.html"><i class="fa-solid fa-house"></i> Back to dashboard</a>',
+        '  </div>',
+        '</div>'
+      ].join('');
+      return;
+    }
+
+    const backHref = 'chapter.html?subject=' + encodeURIComponent(subject.id) + '&chapter=' + encodeURIComponent(chapter.id);
+
+    root.innerHTML = [
+      '<div class="page-header">',
+      '  <div class="page-header-grid">',
+      '    <div>',
+      '      <div class="subject-meta">',
+      '        <span class="subject-chip">' + (subject.code || 'SUB') + '</span>',
+      '        <span class="subject-chip secondary">' + meta.title + '</span>',
+      '      </div>',
+      '      <h1>' + meta.title + '</h1>',
+      '      <p class="page-description">' + chapter.name + ' • ' + subject.name + '</p>',
+      '    </div>',
+      '    <div class="header-actions">',
+      '      <a class="btn btn-ghost" href="' + backHref + '"><i class="fa-solid fa-arrow-left"></i> Back to chapter</a>',
+      '    </div>',
+      '  </div>',
+      '</div>',
+      '<div class="empty-state">',
+      '  <div class="empty-state-icon"><i class="' + meta.icon + '"></i></div>',
+      '  <h2>' + meta.title + ' coming soon</h2>',
+      '  <p>' + meta.description + '</p>',
+      '  <div class="empty-state-actions">',
+      '    <a class="btn btn-primary" href="' + backHref + '"><i class="fa-solid fa-arrow-left"></i> Return to chapter</a>',
+      '  </div>',
+      '</div>'
+    ].join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', renderActivityPage);
+})();

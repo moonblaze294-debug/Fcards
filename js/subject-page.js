@@ -1,96 +1,31 @@
 (function () {
-  function getQueryParam(name) {
-    return new URLSearchParams(window.location.search).get(name);
-  }
-
-  function getSubject() {
-    const subjectId = getQueryParam('subject');
+  function getSubjectFromQuery() {
+    const subjectId = new URLSearchParams(window.location.search).get('subject');
     if (!subjectId) return null;
     return (window.SUBJECTS || []).find(function (subject) {
       return subject && subject.id === subjectId;
     }) || null;
   }
 
-  function getChapter(subject) {
-    const chapterId = getQueryParam('chapter');
-    if (!subject || !chapterId || !Array.isArray(subject.sections)) return null;
-
-    for (var i = 0; i < subject.sections.length; i++) {
-      const section = subject.sections[i];
-      if (!Array.isArray(section.chapters)) continue;
-      const chapter = section.chapters.find(function (item) {
-        return item && item.id === chapterId;
-      });
-      if (chapter) return chapter;
-    }
-
-    return null;
+  function countChapters(subject) {
+    if (!subject || !Array.isArray(subject.sections)) return 0;
+    return subject.sections.reduce(function (total, section) {
+      return total + (Array.isArray(section.chapters) ? section.chapters.length : 0);
+    }, 0);
   }
 
-  function getActivityMeta(activityId) {
-    const activityMap = {
-      mcqs: {
-        title: 'MCQs',
-        description: 'This practice mode is planned for a later milestone. The quiz engine is not implemented in this task.',
-        icon: 'fa-solid fa-circle-question'
-      },
-      flashcards: {
-        title: 'Flashcards',
-        description: 'The existing flashcards experience remains available and is preserved for this milestone.',
-        icon: 'fa-solid fa-clone'
-      },
-      'clinical-cases': {
-        title: 'Clinical cases',
-        description: 'Clinical case workflows are part of the next planned feature set for this product.',
-        icon: 'fa-solid fa-kit-medical'
-      },
-      notes: {
-        title: 'Notes and essays',
-        description: 'Notes and essay content will be added in a later milestone after the content model is complete.',
-        icon: 'fa-solid fa-file-lines'
-      },
-      resources: {
-        title: 'Additional resources',
-        description: 'Reference and resource cards are planned after the main chapter and topic flow is complete.',
-        icon: 'fa-solid fa-book-open-reader'
-      }
-    };
-
-    return activityMap[activityId] || {
-      title: 'Learning activity',
-      description: 'This content is not available yet for this chapter.',
-      icon: 'fa-solid fa-book-open'
-    };
-  }
-
-  function renderActivityPage() {
-    const root = document.getElementById('activity-page');
+  function renderSubjectPage() {
+    const root = document.getElementById('subject-page');
     if (!root) return;
 
-    const subject = getSubject();
-    const chapter = subject ? getChapter(subject) : null;
-    const activityId = getQueryParam('activity') || 'mcqs';
-    const activityMeta = getActivityMeta(activityId);
+    const subject = getSubjectFromQuery();
 
-    const subjectName = subject ? subject.name : 'Unknown subject';
-    const chapterName = chapter ? chapter.name : 'Unknown chapter';
-
-    const subjectBreadcrumb = document.getElementById('subject-breadcrumb');
-    if (subjectBreadcrumb) {
-      subjectBreadcrumb.innerHTML = subject ? '<a href="subject.html?subject=' + encodeURIComponent(subject.id) + '">' + subjectName + '</a>' : 'Subject';
-    }
-
-    const chapterBreadcrumb = document.getElementById('chapter-breadcrumb');
-    if (chapterBreadcrumb) {
-      chapterBreadcrumb.innerHTML = chapter ? '<a href="chapter.html?subject=' + encodeURIComponent(subject.id) + '&chapter=' + encodeURIComponent(chapter.id) + '">' + chapterName + '</a>' : 'Chapter';
-    }
-
-    if (!subject || !chapter) {
+    if (!subject) {
       root.innerHTML = [
         '<div class="empty-state">',
-        '  <div class="empty-state-icon"><i class="fa-solid fa-circle-xmark"></i></div>',
-        '  <h2>Activity unavailable</h2>',
-        '  <p>The selected subject or chapter could not be found.</p>',
+        '  <div class="empty-state-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>',
+        '  <h2>Subject not found</h2>',
+        '  <p>The selected subject could not be located. Please return to the dashboard and choose a valid subject.</p>',
         '  <div class="empty-state-actions">',
         '    <a class="btn btn-primary" href="index.html"><i class="fa-solid fa-house"></i> Back to dashboard</a>',
         '  </div>',
@@ -99,34 +34,90 @@
       return;
     }
 
-    const backHref = 'chapter.html?subject=' + encodeURIComponent(subject.id) + '&chapter=' + encodeURIComponent(chapter.id);
+    const chapterCount = countChapters(subject);
+    const subjectCode = subject.code || 'SUB';
+
+    const sectionsHtml = (subject.sections || []).map(function (section) {
+      const cardsHtml = (section.chapters || []).map(function (chapter) {
+        return [
+          '<button class="chapter-card" type="button" data-subject="' + encodeURIComponent(subject.id) + '" data-chapter="' + encodeURIComponent(chapter.id) + '">',
+          '  <span class="chapter-num">' + (chapter.num || '') + '</span>',
+          '  <span class="chapter-info">',
+          '    <h4>' + (chapter.name || 'Untitled chapter') + '</h4>',
+          '    <span class="chapter-count">Open chapter</span>',
+          '  </span>',
+          '</button>'
+        ].join('');
+      }).join('');
+
+      return [
+        '<div class="subject-section">',
+        '  <div class="section-divider">' + (section.name || 'General') + '</div>',
+        '  <div class="chapter-grid">' + cardsHtml + '</div>',
+        '</div>'
+      ].join('');
+    }).join('');
 
     root.innerHTML = [
       '<div class="page-header">',
       '  <div class="page-header-grid">',
       '    <div>',
       '      <div class="subject-meta">',
-      '        <span class="subject-chip">' + (subject.code || 'SUB') + '</span>',
-      '        <span class="subject-chip secondary">' + activityMeta.title + '</span>',
+      '        <span class="subject-chip">' + subjectCode + '</span>',
+      '        <span class="subject-chip secondary">' + chapterCount + ' chapters</span>',
       '      </div>',
-      '      <h1>' + activityMeta.title + '</h1>',
-      '      <p class="page-description">' + chapter.name + ' • ' + subject.name + '</p>',
+      '      <h1>' + (subject.name || 'Untitled subject') + '</h1>',
+      '      <p class="page-description">Select a chapter to continue your learning path.</p>',
       '    </div>',
       '    <div class="header-actions">',
-      '      <a class="btn btn-ghost" href="' + backHref + '"><i class="fa-solid fa-arrow-left"></i> Back to chapter</a>',
+      '      <a class="btn btn-ghost" href="index.html"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>',
       '    </div>',
       '  </div>',
       '</div>',
-      '<div class="empty-state placeholder-state">',
-      '  <div class="empty-state-icon"><i class="' + activityMeta.icon + '"></i></div>',
-      '  <h2>' + activityMeta.title + ' coming soon</h2>',
-      '  <p>' + activityMeta.description + '</p>',
-      '  <div class="empty-state-actions">',
-      '    <a class="btn btn-primary" href="' + backHref + '"><i class="fa-solid fa-arrow-left"></i> Return to chapter</a>',
+      '<div class="toolbar">',
+      '  <div class="search-wrap">',
+      '    <i class="fa-solid fa-magnifying-glass"></i>',
+      '    <input id="chapter-search" class="input search-input" type="search" placeholder="Search chapters..." aria-label="Search chapters">',
       '  </div>',
-      '</div>'
+      '</div>',
+      '<div id="subject-chapters">' + sectionsHtml + '</div>'
     ].join('');
+
+    const searchInput = document.getElementById('chapter-search');
+    const chapterCards = Array.prototype.slice.call(document.querySelectorAll('.chapter-card'));
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        const query = searchInput.value.trim().toLowerCase();
+        const sections = Array.prototype.slice.call(document.querySelectorAll('.subject-section'));
+
+        sections.forEach(function (section) {
+          const cards = Array.prototype.slice.call(section.querySelectorAll('.chapter-card'));
+          let visible = 0;
+
+          cards.forEach(function (card) {
+            const chapterTitle = (card.querySelector('h4') || {}).textContent || '';
+            const shouldShow = !query || chapterTitle.toLowerCase().indexOf(query) !== -1;
+            card.style.display = shouldShow ? '' : 'none';
+            if (shouldShow) visible++;
+          });
+
+          const divider = section.querySelector('.section-divider');
+          if (divider) {
+            divider.style.display = visible > 0 ? '' : 'none';
+          }
+        });
+      });
+    }
+
+    chapterCards.forEach(function (card) {
+      card.addEventListener('click', function () {
+        const subjectValue = card.getAttribute('data-subject');
+        const chapterValue = card.getAttribute('data-chapter');
+        window.location.href = 'chapter.html?subject=' + subjectValue + '&chapter=' + chapterValue;
+      });
+    });
   }
 
-  document.addEventListener('DOMContentLoaded', renderActivityPage);
+  document.addEventListener('DOMContentLoaded', renderSubjectPage);
 })();

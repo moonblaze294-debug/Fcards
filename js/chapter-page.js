@@ -1,36 +1,98 @@
 (function () {
-  function getSubjectId() {
-    return new URLSearchParams(window.location.search).get('subject');
+  function getParams() {
+    return new URLSearchParams(window.location.search);
   }
 
-  function getSubject() {
-    const subjectId = getSubjectId();
+  function findSubject() {
+    const subjectId = getParams().get('subject');
     if (!subjectId) return null;
     return (window.SUBJECTS || []).find(function (subject) {
       return subject && subject.id === subjectId;
     }) || null;
   }
 
-  function countChapters(subject) {
-    if (!subject || !Array.isArray(subject.sections)) return 0;
-    return subject.sections.reduce(function (total, section) {
-      return total + (Array.isArray(section.chapters) ? section.chapters.length : 0);
-    }, 0);
+  function findChapter(subject) {
+    const chapterId = getParams().get('chapter');
+    if (!subject || !chapterId || !Array.isArray(subject.sections)) return null;
+
+    for (var i = 0; i < subject.sections.length; i++) {
+      const section = subject.sections[i];
+      if (!Array.isArray(section.chapters)) continue;
+      const chapter = section.chapters.find(function (item) {
+        return item && item.id === chapterId;
+      });
+      if (chapter) return chapter;
+    }
+
+    return null;
   }
 
-  function renderSubjectPage() {
-    const root = document.getElementById('subject-page');
+  function renderActivityPage() {
+    const root = document.getElementById('activity-page');
     if (!root) return;
 
-    const subject = getSubject();
-    const subjectId = getSubjectId();
+    const subject = findSubject();
+    const chapter = subject ? findChapter(subject) : null;
+    const activityKey = getParams().get('activity') || 'mcqs';
+    const meta = {
+      mcqs: {
+        title: 'MCQs',
+        description: 'Practice concept checks and quick self-assessment questions.',
+        icon: 'fa-solid fa-circle-question'
+      },
+      flashcards: {
+        title: 'Flashcards',
+        description: 'Review recall prompts and high-yield concepts.',
+        icon: 'fa-solid fa-clone'
+      },
+      'clinical-cases': {
+        title: 'Clinical Cases',
+        description: 'Apply the chapter knowledge to patient-centered reasoning scenarios.',
+        icon: 'fa-solid fa-kit-medical'
+      },
+      notes: {
+        title: 'Notes & Essays',
+        description: 'Capture a concise summary or a longer written explanation of the chapter.',
+        icon: 'fa-solid fa-file-lines'
+      },
+      resources: {
+        title: 'Additional Resources',
+        description: 'Open supporting references, tips, and revision material for this chapter.',
+        icon: 'fa-solid fa-book-open-reader'
+      }
+    };
 
-    if (!subject) {
+    const current = meta[activityKey] || {
+      title: 'Learning Activity',
+      description: 'This activity is not available yet for this chapter.',
+      icon: 'fa-solid fa-book-open'
+    };
+
+    const subjectBreadcrumb = document.getElementById('subject-breadcrumb');
+    if (subjectBreadcrumb) {
+      subjectBreadcrumb.innerHTML = subject
+        ? '<a href="subject.html?subject=' + encodeURIComponent(subject.id) + '">' + (subject.name || 'Subject') + '</a>'
+        : 'Subject';
+    }
+
+    const chapterBreadcrumb = document.getElementById('chapter-breadcrumb');
+    if (chapterBreadcrumb) {
+      chapterBreadcrumb.innerHTML = chapter
+        ? '<a href="chapter.html?subject=' + encodeURIComponent(subject.id) + '&chapter=' + encodeURIComponent(chapter.id) + '">' + (chapter.name || 'Chapter') + '</a>'
+        : 'Chapter';
+    }
+
+    const activityBreadcrumb = document.getElementById('activity-breadcrumb');
+    if (activityBreadcrumb) {
+      activityBreadcrumb.textContent = current.title;
+    }
+
+    if (!subject || !chapter) {
       root.innerHTML = [
         '<div class="empty-state">',
-        '  <div class="empty-state-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>',
-        '  <h2>Subject not found</h2>',
-        '  <p>The selected subject could not be located. Please return to the dashboard and choose a valid subject.</p>',
+        '  <div class="empty-state-icon"><i class="fa-solid fa-circle-xmark"></i></div>',
+        '  <h2>Activity unavailable</h2>',
+        '  <p>The selected subject or chapter could not be found.</p>',
         '  <div class="empty-state-actions">',
         '    <a class="btn btn-primary" href="index.html"><i class="fa-solid fa-house"></i> Back to dashboard</a>',
         '  </div>',
@@ -39,94 +101,34 @@
       return;
     }
 
-    const chapterCount = countChapters(subject);
-    const subjectCode = subject.code || 'SUB';
-
-    const sectionsHtml = (subject.sections || []).map(function (section) {
-      const cardsHtml = (section.chapters || []).map(function (chapter) {
-        return [
-          '<button class="chapter-card" type="button" data-subject="' + encodeURIComponent(subject.id) + '" data-chapter="' + encodeURIComponent(chapter.id) + '">',
-          '  <span class="chapter-num">' + (chapter.num || '') + '</span>',
-          '  <span class="chapter-info">',
-          '    <h4>' + (chapter.name || 'Untitled chapter') + '</h4>',
-          '    <span class="chapter-count">Open chapter</span>',
-          '  </span>',
-          '</button>'
-        ].join('');
-      }).join('');
-
-      return [
-        '<div class="subject-section">',
-        '  <div class="section-divider">' + (section.name || 'General') + '</div>',
-        '  <div class="chapter-grid">' + cardsHtml + '</div>',
-        '</div>'
-      ].join('');
-    }).join('');
+    const backHref = 'chapter.html?subject=' + encodeURIComponent(subject.id) + '&chapter=' + encodeURIComponent(chapter.id);
 
     root.innerHTML = [
       '<div class="page-header">',
       '  <div class="page-header-grid">',
       '    <div>',
       '      <div class="subject-meta">',
-      '        <span class="subject-chip">' + subjectCode + '</span>',
-      '        <span class="subject-chip secondary">' + chapterCount + ' chapters</span>',
+      '        <span class="subject-chip">' + (subject.code || 'SUB') + '</span>',
+      '        <span class="subject-chip secondary">' + current.title + '</span>',
       '      </div>',
-      '      <h1>' + (subject.name || 'Untitled subject') + '</h1>',
-      '      <p class="page-description">Select a chapter to continue your learning path.</p>',
+      '      <h1>' + current.title + '</h1>',
+      '      <p class="page-description">' + chapter.name + ' • ' + subject.name + '</p>',
       '    </div>',
       '    <div class="header-actions">',
-      '      <a class="btn btn-ghost" href="index.html"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>',
+      '      <a class="btn btn-ghost" href="' + backHref + '"><i class="fa-solid fa-arrow-left"></i> Back to chapter</a>',
       '    </div>',
       '  </div>',
       '</div>',
-      '<div class="toolbar">',
-      '  <div class="search-wrap">',
-      '    <i class="fa-solid fa-magnifying-glass"></i>',
-      '    <input id="chapter-search" class="input search-input" type="search" placeholder="Search chapters..." aria-label="Search chapters">',
+      '<div class="empty-state placeholder-state">',
+      '  <div class="empty-state-icon"><i class="' + current.icon + '"></i></div>',
+      '  <h2>' + current.title + ' coming soon</h2>',
+      '  <p>' + current.description + '</p>',
+      '  <div class="empty-state-actions">',
+      '    <a class="btn btn-primary" href="' + backHref + '"><i class="fa-solid fa-arrow-left"></i> Return to chapter</a>',
       '  </div>',
-      '</div>',
-      '<div id="subject-chapters">' + sectionsHtml + '</div>'
+      '</div>'
     ].join('');
-
-    const searchInput = document.getElementById('chapter-search');
-    const chapterCards = Array.prototype.slice.call(document.querySelectorAll('.chapter-card'));
-
-    if (searchInput) {
-      searchInput.addEventListener('input', function () {
-        const query = searchInput.value.trim().toLowerCase();
-        const sections = Array.prototype.slice.call(document.querySelectorAll('.subject-section'));
-
-        sections.forEach(function (section) {
-          const cards = Array.prototype.slice.call(section.querySelectorAll('.chapter-card'));
-          let visible = 0;
-
-          cards.forEach(function (card) {
-            const chapterTitle = (card.querySelector('h4') || {}).textContent || '';
-            const shouldShow = !query || chapterTitle.toLowerCase().indexOf(query) !== -1;
-            card.style.display = shouldShow ? '' : 'none';
-            if (shouldShow) visible++;
-          });
-
-          const divider = section.querySelector('.section-divider');
-          if (divider) {
-            divider.style.display = visible > 0 ? '' : 'none';
-          }
-        });
-      });
-    }
-
-    chapterCards.forEach(function (card) {
-      card.addEventListener('click', function () {
-        const subjectValue = card.getAttribute('data-subject');
-        const chapterValue = card.getAttribute('data-chapter');
-        window.location.href = 'chapter.html?subject=' + subjectValue + '&chapter=' + chapterValue;
-      });
-    });
-
-    if (!subjectId) {
-      root.insertAdjacentHTML('beforeend', '<div class="empty-state">...</div>');
-    }
   }
 
-  document.addEventListener('DOMContentLoaded', renderSubjectPage);
+  document.addEventListener('DOMContentLoaded', renderActivityPage);
 })();

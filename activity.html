@@ -18,6 +18,13 @@
       document.documentElement.setAttribute('data-theme', themeId);
       localStorage.setItem('mimi_theme', themeId);
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const themeDropdown = document.getElementById('theme-selector');
+      if (themeDropdown) {
+        themeDropdown.value = localStorage.getItem('mimi_theme') || 'white-blue';
+      }
+    });
   </script>
 
   <header class="app-header">
