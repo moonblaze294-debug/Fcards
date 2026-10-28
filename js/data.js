@@ -3,19 +3,16 @@ function chapter(id, num, name) {
     id,
     num,
     name,
-
     premium: false,
-
     estimatedCards: 0,
     estimatedNotes: 0,
     estimatedQuiz: 0,
     estimatedViva: 0,
-
     lastUpdated: null,
-
     topics: []
   };
 }
+
 const SUBJECTS = [
   {
     id: 'forensic',
@@ -23,49 +20,21 @@ const SUBJECTS = [
     code: 'FM',
     sections: [
       {
-        name: 'Section 1: Forensic Medicine',
+        name: 'Forensic Medicine',
         chapters: [
-
-          chapter("fm-01",1,"Introduction"),
-          chapter("fm-02",2,"Legal Procedure"),
-          chapter("fm-03",3,"Medical Law and Ethics"),
-          chapter("fm-04",4,"Identification"),
-          chapter("fm-05",5,"Medicolegal Autopsy"),
-          chapter("fm-06",6,"Death and its Cause"),
-          chapter("fm-07",7,"Postmortem Changes"),
-          chapter("fm-08",8,"Mechanical Injuries"),
-          chapter("fm-09",9,"Regional Injuries"),
-          chapter("fm-10",10,"Medicolegal Aspects of Wounds"),
-          chapter("fm-11",11,"Thermal Deaths"),
-          chapter("fm-12",12,"Starvation"),
-          chapter("fm-13",13,"Mechanical Asphyxia"),
-          chapter("fm-14",14,"Anesthetic and Operative Deaths"),
-          chapter("fm-15",15,"Impotence and Sterility"),
-          chapter("fm-16",16,"Virginity, Pregnancy and Delivery"),
-          chapter("fm-17",17,"Abortion"),
-          chapter("fm-18",18,"Sexual Offences"),
-          chapter("fm-19",19,"Infant Deaths"),
-          chapter("fm-20",20,"Blood Stains"),
-          chapter("fm-21",21,"Artefacts"),
-          chapter("fm-22",22,"Forensic Science Laboratory"),
-          chapter("fm-23",23,"Forensic Psychiatry")
-
+          chapter('fm-01', 1, 'Introduction to Forensic Medicine'),
+          chapter('fm-02', 2, 'Legal Procedure and Ethics'),
+          chapter('fm-03', 3, 'Identification and Personal Identity'),
+          chapter('fm-04', 4, 'Death and Postmortem Changes')
         ]
       },
       {
-        name: 'Section 2: Toxicology',
+        name: 'Toxicology',
         chapters: [
-
-          chapter("fm-24",24,"General Considerations"),
-          chapter("fm-25",25,"Agricultural Poisons"),
-          chapter("fm-26",26,"Corrosive Poisons"),
-          chapter("fm-27",27,"Metallic Poisons"),
-          chapter("fm-28",28,"Inorganic Irritant Poisons"),
-          chapter("fm-29",29,"Inebriant Poisons"),
-          chapter("fm-30",30,"Asphyxiants"),
-          chapter("fm-31",31,"Pharmaceutical Toxicology"),
-          chapter("fm-32",32,"Biotoxicology")
-
+          chapter('fm-05', 5, 'General Toxicology'),
+          chapter('fm-06', 6, 'Agricultural Poisons'),
+          chapter('fm-07', 7, 'Corrosives and Metallic Poisons'),
+          chapter('fm-08', 8, 'Inorganic and Organic Poisons')
         ]
       }
     ]
@@ -76,37 +45,266 @@ const SUBJECTS = [
     code: 'CM',
     sections: [
       {
-        name: null,
+        name: 'Core Community Medicine',
         chapters: [
-
-          chapter("cm-01",1,"Man and Medicine Towards Health for All"),
-          chapter("cm-02",2,"Concept of Health and Disease"),
-          chapter("cm-03",3,"Principles of Epidemiology and Epidemiologic Methods"),
-          chapter("cm-04",4,"Screening"),
-          chapter("cm-05",5,"Epidemiology of Communicable Diseases"),
-          chapter("cm-06",6,"Epidemiology of Non-Communicable Diseases"),
-          chapter("cm-07",7,"Health Programmes in India"),
-          chapter("cm-08",8,"Demography and Family Planning"),
-          chapter("cm-09",9,"Preventive Medicine in Obstetrics, Paediatrics and Geriatrics"),
-          chapter("cm-10",10,"Health Care of the Community"),
-          chapter("cm-11",11,"Nutrition and Health"),
-          chapter("cm-12",12,"Medicine and Social Sciences"),
-          chapter("cm-13",13,"Tribal Health in India"),
-          chapter("cm-14",14,"Sustainable Development Goals"),
-          chapter("cm-15",15,"Environment and Health"),
-          chapter("cm-16",16,"Hospital Waste Management"),
-          chapter("cm-17",17,"Disaster Management"),
-          chapter("cm-18",18,"Occupational Health"),
-          chapter("cm-19",19,"Genetics and Health"),
-          chapter("cm-20",20,"Mental Health"),
-          chapter("cm-21",21,"Health Information and Basic Medical Statistics"),
-          chapter("cm-22",22,"Communication for Health Education"),
-          chapter("cm-23",23,"Health Planning and Management"),
-          chapter("cm-24",24,"Essential Medicines and Counterfeit Medicines"),
-          chapter("cm-25",25,"International Health")
-
+          chapter('cm-01', 1, 'Health and Disease Concepts'),
+          chapter('cm-02', 2, 'Epidemiology and Screening'),
+          chapter('cm-03', 3, 'Communicable and Non-communicable Diseases'),
+          chapter('cm-04', 4, 'Nutrition and Health Programs')
         ]
       }
     ]
+  },
+  {
+    id: 'anatomy',
+    name: 'Anatomy',
+    code: 'AN',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('an-01', 1, 'General Anatomy'),
+        chapter('an-02', 2, 'Upper Limb'),
+        chapter('an-03', 3, 'Lower Limb'),
+        chapter('an-04', 4, 'Thorax and Abdomen')
+      ]
+    }]
+  },
+  {
+    id: 'physiology',
+    name: 'Physiology',
+    code: 'PH',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('ph-01', 1, 'General Physiology'),
+        chapter('ph-02', 2, 'Nerve and Muscle'),
+        chapter('ph-03', 3, 'Cardiovascular System'),
+        chapter('ph-04', 4, 'Respiratory System')
+      ]
+    }]
+  },
+  {
+    id: 'biochemistry',
+    name: 'Biochemistry',
+    code: 'BC',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('bc-01', 1, 'Enzymes and Metabolism'),
+        chapter('bc-02', 2, 'Carbohydrates and Lipids'),
+        chapter('bc-03', 3, 'Proteins and Nucleic Acids'),
+        chapter('bc-04', 4, 'Clinical Biochemistry')
+      ]
+    }]
+  },
+  {
+    id: 'pathology',
+    name: 'Pathology',
+    code: 'PA',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('pa-01', 1, 'General Pathology'),
+        chapter('pa-02', 2, 'Inflammation and Repair'),
+        chapter('pa-03', 3, 'Neoplasia'),
+        chapter('pa-04', 4, 'Systemic Pathology')
+      ]
+    }]
+  },
+  {
+    id: 'microbiology',
+    name: 'Microbiology',
+    code: 'MI',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('mi-01', 1, 'General Microbiology'),
+        chapter('mi-02', 2, 'Bacteriology'),
+        chapter('mi-03', 3, 'Virology'),
+        chapter('mi-04', 4, 'Mycology and Parasitology')
+      ]
+    }]
+  },
+  {
+    id: 'pharmacology',
+    name: 'Pharmacology',
+    code: 'PG',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('pg-01', 1, 'General Pharmacology'),
+        chapter('pg-02', 2, 'Autonomic Nervous System'),
+        chapter('pg-03', 3, 'Cardiovascular Drugs'),
+        chapter('pg-04', 4, 'Antimicrobials')
+      ]
+    }]
+  },
+  {
+    id: 'general-medicine',
+    name: 'General Medicine',
+    code: 'GM',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('gm-01', 1, 'Approach to Diagnosis'),
+        chapter('gm-02', 2, 'Cardiology'),
+        chapter('gm-03', 3, 'Pulmonology'),
+        chapter('gm-04', 4, 'Endocrinology')
+      ]
+    }]
+  },
+  {
+    id: 'general-surgery',
+    name: 'General Surgery',
+    code: 'GS',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('gs-01', 1, 'Surgical Principles'),
+        chapter('gs-02', 2, 'Head and Neck'),
+        chapter('gs-03', 3, 'Abdominal Surgery'),
+        chapter('gs-04', 4, 'Trauma and Emergency Surgery')
+      ]
+    }]
+  },
+  {
+    id: 'obgyn',
+    name: 'Obstetrics and Gynaecology',
+    code: 'OG',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('og-01', 1, 'Basic Obstetrics'),
+        chapter('og-02', 2, 'Normal Labour'),
+        chapter('og-03', 3, 'Gynaecology Basics'),
+        chapter('og-04', 4, 'High-Risk Pregnancy')
+      ]
+    }]
+  },
+  {
+    id: 'pediatrics',
+    name: 'Pediatrics',
+    code: 'PD',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('pd-01', 1, 'Growth and Development'),
+        chapter('pd-02', 2, 'Neonatology'),
+        chapter('pd-03', 3, 'Infectious Diseases in Children'),
+        chapter('pd-04', 4, 'Nutrition and Paediatric Emergencies')
+      ]
+    }]
+  },
+  {
+    id: 'ophthalmology',
+    name: 'Ophthalmology',
+    code: 'OP',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('op-01', 1, 'Eye Anatomy and Physiology'),
+        chapter('op-02', 2, 'Refraction and Optics'),
+        chapter('op-03', 3, 'Diseases of the Conjunctiva'),
+        chapter('op-04', 4, 'Glaucoma and Retina')
+      ]
+    }]
+  },
+  {
+    id: 'ent',
+    name: 'Otorhinolaryngology (ENT)',
+    code: 'EN',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('en-01', 1, 'ENT Anatomy'),
+        chapter('en-02', 2, 'Ear Disorders'),
+        chapter('en-03', 3, 'Nose and Sinus Disorders'),
+        chapter('en-04', 4, 'Throat and Larynx Disorders')
+      ]
+    }]
+  },
+  {
+    id: 'orthopaedics',
+    name: 'Orthopaedics',
+    code: 'OR',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('or-01', 1, 'Basic Orthopaedic Principles'),
+        chapter('or-02', 2, 'Trauma and Fractures'),
+        chapter('or-03', 3, 'Joint Disorders'),
+        chapter('or-04', 4, 'Spine and Paediatric Orthopaedics')
+      ]
+    }]
+  },
+  {
+    id: 'dermatology',
+    name: 'Dermatology, Venereology, and Leprosy',
+    code: 'DV',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('dv-01', 1, 'Skin Anatomy and Functions'),
+        chapter('dv-02', 2, 'Infections of the Skin'),
+        chapter('dv-03', 3, 'Dermatitis and Eczema'),
+        chapter('dv-04', 4, 'Leprosy and STI Disorders')
+      ]
+    }]
+  },
+  {
+    id: 'psychiatry',
+    name: 'Psychiatry',
+    code: 'PS',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('ps-01', 1, 'Psychiatric Assessment'),
+        chapter('ps-02', 2, 'Mood and Anxiety Disorders'),
+        chapter('ps-03', 3, 'Psychotic Disorders'),
+        chapter('ps-04', 4, 'Substance Abuse and Emergency Psychiatry')
+      ]
+    }]
+  },
+  {
+    id: 'anesthesiology',
+    name: 'Anesthesiology',
+    code: 'AS',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('as-01', 1, 'Principles of Anaesthesia'),
+        chapter('as-02', 2, 'Airway Management'),
+        chapter('as-03', 3, 'Regional Anaesthesia'),
+        chapter('as-04', 4, 'Monitoring and Complications')
+      ]
+    }]
+  },
+  {
+    id: 'radiology',
+    name: 'Radiology',
+    code: 'RA',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('ra-01', 1, 'Principles of Imaging'),
+        chapter('ra-02', 2, 'Chest Radiology'),
+        chapter('ra-03', 3, 'Abdominal Imaging'),
+        chapter('ra-04', 4, 'Neuroimaging Basics')
+      ]
+    }]
+  },
+  {
+    id: 'emergency-medicine',
+    name: 'Emergency Medicine',
+    code: 'EM',
+    sections: [{
+      name: 'Core Chapters',
+      chapters: [
+        chapter('em-01', 1, 'Emergency Triage'),
+        chapter('em-02', 2, 'Resuscitation'),
+        chapter('em-03', 3, 'Trauma Management'),
+        chapter('em-04', 4, 'Medical Emergencies')
+      ]
+    }]
   }
 ];
