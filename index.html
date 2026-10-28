@@ -4,172 +4,93 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MedCards — Dashboard</title>
-  
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  
-  <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .subject-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
 
-  <!-- Minimal inline styles purely for custom subject layout not fully covered by styles.css -->
+    .subject-card-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
 
-    <style>
-    /* Subject Card (Clickable Header) */
-    .subject-wrapper { margin-bottom: 16px; }
-    .subject-progress-card {
+    .subject-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px 24px;
+      padding: 20px;
+      min-height: 170px;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .subject-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--accent);
+    }
+
+    .subject-card-header {
       display: flex;
       align-items: center;
-      gap: 20px;
-      box-shadow: var(--shadow);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-radius 0.15s;
-      cursor: pointer;
-      position: relative;
-      z-index: 2;
+      justify-content: space-between;
+      margin-bottom: 18px;
     }
-    .subject-progress-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
-    
-    /* Expanded State */
-    .subject-wrapper.expanded .subject-progress-card {
-      border-radius: var(--radius) var(--radius) 0 0;
-      border-bottom-color: transparent;
-      transform: none;
-      box-shadow: none;
-    }
-    .subject-wrapper.expanded {
-      box-shadow: var(--shadow-hover);
-      border-radius: var(--radius);
-    }
-    
-    .subject-badge {
+
+    .subject-card-badge {
       width: 48px;
       height: 48px;
-      border-radius: 12px;
+      border-radius: 14px;
+      background: var(--accent-soft);
+      color: var(--accent);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--font-heading);
       font-weight: 700;
       font-size: 14px;
-      flex-shrink: 0;
-      background: var(--accent-soft);
-      color: var(--accent);
-    }
-    .subject-info { flex: 1; min-width: 0; }
-    .subject-name {
-      font-family: var(--font-heading);
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 4px;
-    }
-    .subject-meta { font-size: 13px; color: var(--text-muted); }
-    
-    .subject-progress-wrap { flex: 1; max-width: 200px; }
-    .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
-    .progress-track { height: 6px; background: var(--border-light); border-radius: 99px; overflow: hidden; }
-    .progress-bar { height: 100%; border-radius: 99px; width: 0%; background: var(--accent); transition: width 1.2s cubic-bezier(.22,1,.36,1); }
-    
-    .subject-stats { display: flex; gap: 24px; flex-shrink: 0; text-align: right; }
-    .sub-stat-val { font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.1; }
-    .sub-stat-val.hy { color: var(--success); }
-    .sub-stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
-    
-    /* Chevron Arrow */
-    .chevron-icon { color: var(--text-muted); transition: transform 0.3s ease; }
-    .subject-wrapper.expanded .chevron-icon { transform: rotate(180deg); }
-
-    /* Chapters Container (The Accordion Body) */
-    .chapters-container {
-      display: none;
-      padding: 0 24px 24px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-top: 1px dashed var(--border);
-      border-radius: 0 0 var(--radius) var(--radius);
-      position: relative;
-      z-index: 1;
-    }
-    .subject-wrapper.expanded .chapters-container {
-      display: block;
-      animation: slideDown 0.2s ease-out;
-    }
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
+      letter-spacing: 0.04em;
     }
 
-    /* Chapter & Topic Lists */
-    .chapter-item {
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border-light);
+    .subject-card-arrow {
+      color: var(--text-muted);
+      font-size: 18px;
     }
-    .chapter-item:last-child { border-bottom: none; }
-    .chapter-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .chapter-title {
-      font-weight: 600;
-      font-size: 15px;
+
+    .subject-card-name {
+      font-size: 20px;
+      font-weight: 700;
       color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 10px;
     }
-    .chapter-actions { display: flex; gap: 8px; }
-    
-    .topic-list-dash {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      padding-left: 12px;
-      border-left: 2px solid var(--border-light);
-      margin-left: 4px;
-    }
-    .topic-link {
+
+    .subject-card-meta {
       font-size: 13px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: var(--radius-sm);
-      transition: background 0.15s, color 0.15s;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
     }
-    .topic-link i { color: var(--text-muted); font-size: 12px; }
-    .topic-link:hover {
-      background: var(--bg-input);
-      color: var(--accent);
-    }
-    .topic-link:hover i { color: var(--accent); }
 
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .subject-progress-card { flex-direction: column; align-items: flex-start; gap: 16px; }
-      .subject-progress-wrap { max-width: 100%; width: 100%; }
-      .subject-stats { width: 100%; justify-content: space-between; text-align: left; }
-      .sub-stat { text-align: left; }
-      .chapter-header { flex-direction: column; align-items: flex-start; }
-      .chapter-actions { width: 100%; justify-content: flex-start; }
+    .subject-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -30px -30px auto;
+      width: 120px;
+      height: 120px;
+      background: rgba(59, 130, 246, 0.06);
+      border-radius: 50%;
     }
-    .nav-links { display: flex; gap: 12px; }
-    .nav-link { color: var(--text-secondary); font-size: 14px; font-weight: 500; transition: color 0.15s; }
-    .nav-link:hover, .nav-link.active { color: var(--accent); }
-    </style>
-  
+  </style>
 </head>
 <body>
-  
-  <!-- Prevent FOUC (Flash of Unstyled Content) by setting theme immediately -->
   <script>
     (function() {
       var theme = localStorage.getItem('mimi_theme') || 'white-blue';
@@ -185,15 +106,13 @@
         <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
         MedCards
       </a>
-            <div class="header-right">
+      <div class="header-right">
         <nav class="nav-links">
           <a href="index.html" class="nav-link active">Dashboard</a>
           <a href="flashcards.html" class="nav-link">Flashcards</a>
           <a href="notes.html" class="nav-link">Notes</a>
           <a href="quiz.html" class="nav-link">Quiz</a>
         </nav>
-        
-        <!-- ADD THIS DROPDOWN -->
         <select class="theme-select" id="theme-selector" onchange="changeTheme(this.value)">
           <option value="white-blue">White & Blue</option>
           <option value="notebook">Ruled Paper</option>
@@ -208,33 +127,23 @@
           <option value="newsprint">Newsprint</option>
         </select>
       </div>
-        <nav class="nav-links">
-          <a href="index.html" class="nav-link active">Dashboard</a>
-          <a href="flashcards.html" class="nav-link">Flashcards</a>
-          <a href="notes.html" class="nav-link">Notes</a>
-          <a href="quiz.html" class="nav-link">Quiz</a>
-        </nav>
-      </div>
     </div>
   </header>
 
   <main>
     <div class="container">
-      
-      <!-- Welcome Hero -->
       <section class="welcome">
         <h1>Welcome back, Mimi 👋</h1>
-        <p>Ready to study? Here's where you stand.</p>
+        <p>Choose a subject to begin your study session.</p>
       </section>
 
-      <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-label"><i class="fa-solid fa-clone"></i> Total Cards</div>
           <div class="stat-value" id="stat-total">0</div>
           <div class="stat-sub">Across all subjects</div>
         </div>
-        
+
         <div class="stat-card">
           <div class="stat-label"><i class="fa-solid fa-star"></i> High Yield</div>
           <div class="stat-value" style="color: var(--success);" id="stat-hy">0</div>
@@ -248,212 +157,32 @@
         </div>
       </div>
 
-      <!-- Feature Cards -->
-      <div class="features-grid">
-        <a href="flashcards.html" class="feature-card">
-          <div class="feature-icon"><i class="fa-solid fa-clone"></i></div>
-          <h3>Flashcards</h3>
-          <p>Browse, practice, and master your subjects. Filter by yield layer and track your progress.</p>
-          <div class="feature-arrow">Start Studying <i class="fa-solid fa-arrow-right"></i></div>
-        </a>
-
-        <a href="notes.html" class="feature-card">
-          <div class="feature-icon" style="background: var(--warning-soft); color: var(--warning);"><i class="fa-solid fa-book-open"></i></div>
-          <h3>Exam Notes</h3>
-          <p>Long-form notes by chapter and topic, built for professor exams. Read and annotate.</p>
-          <div class="feature-arrow" style="color: var(--warning);">Read Notes <i class="fa-solid fa-arrow-right"></i></div>
-        </a>
-      </div>
-
-      <!-- Section Header -->
       <div class="section-header">
         <h2>Your Subjects</h2>
         <span style="font-size: 13px; color: var(--text-muted);" id="subject-count"></span>
       </div>
 
-      <!-- Subject List Target -->
-      <div id="subject-overview">
-        <!-- Rendered via JS -->
-      </div>
-
+      <div id="subject-overview" class="subject-grid"></div>
     </div>
   </main>
 
-  <!-- Load Scripts -->
   <script src="js/data.js"></script>
   <script type="module" src="js/storage.js"></script>
-  
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       renderStats();
       renderSubjectOverview();
+      const currentTheme = window.getTheme();
+      const themeDropdown = document.getElementById('theme-selector');
+      if (themeDropdown) {
+        themeDropdown.value = currentTheme;
+      }
     });
-    // 1. The function that triggers when you pick a new theme
+
     function changeTheme(themeId) {
-      // Update the HTML attribute to swap the CSS
       document.documentElement.setAttribute('data-theme', themeId);
-      
-      // Save it to localStorage using your existing storage.js function
       window.setTheme(themeId);
     }
-
-    // 2. Add this inside your existing document.addEventListener('DOMContentLoaded', ...)
-    // This ensures the dropdown shows the correct theme when you refresh the page
-    const currentTheme = window.getTheme();
-    const themeDropdown = document.getElementById('theme-selector');
-    if (themeDropdown) {
-      themeDropdown.value = currentTheme;
-    }
-    
-    /**
-     * Renders the top stats by pulling from storage.js getStats()
-     */
-    function renderStats() {
-      const stats = getStats();
-      animateCount('stat-total', stats.totalCards || 0);
-      animateCount('stat-hy', stats.highYieldCards || 0);
-    }
-
-    /**
-     * Force refresh calculation via storage.js refreshStats()
-     */
-    function handleRefreshStats() {
-      refreshStats(); // Calling the function from storage.js
-      renderStats();
-      renderSubjectOverview();
-      showToast('Card counts refreshed successfully', 'success');
-    }
-
-    /**
-     * Renders the subject progress bars using SUBJECTS array from data.js 
-     * and cards array from storage.js
-     */
-    function renderSubjectOverview() {
-      const container = document.getElementById('subject-overview');
-      const allCards = getCards();
-      const allTopics = getTopics();
-
-      document.getElementById('subject-count').textContent = `${SUBJECTS.length} subjects`;
-
-      container.innerHTML = SUBJECTS.map(subject => {
-        // Collect all chapter IDs for this specific subject
-        const chapterIds = subject.sections.flatMap(section => 
-          section.chapters.map(chapter => chapter.id)
-        );
-
-        // Filter cards and topics matching this subject's chapters
-        const subjectCards = allCards.filter(card => chapterIds.includes(card.chapterId));
-        const subjectHY = subjectCards.filter(card => card.layer && card.layer <= 3).length;
-        const topicCount = allTopics.filter(topic => chapterIds.includes(topic.chapterId)).length;
-        
-        const chapterCount = chapterIds.length;
-        
-        // Calculate percentage for progress bar
-        const progressPct = subjectCards.length > 0 
-          ? Math.round((subjectHY / subjectCards.length) * 100) 
-          : 0;
-
-        return `
-          <div class="subject-progress-card">
-            <div class="subject-badge">${subject.code}</div>
-            
-            <div class="subject-info">
-              <div class="subject-name">${subject.name}</div>
-              <div class="subject-meta">${chapterCount} chapters &middot; ${topicCount} topics</div>
-            </div>
-            
-            <div class="subject-progress-wrap">
-              <div class="progress-label">
-                <span>High Yield Coverage</span>
-                <span>${progressPct}%</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-bar" data-target="${progressPct}"></div>
-              </div>
-            </div>
-            
-            <div class="subject-stats">
-              <div class="sub-stat">
-                <div class="sub-stat-val">${subjectCards.length}</div>
-                <div class="sub-stat-label">Total Cards</div>
-              </div>
-              <div class="sub-stat">
-                <div class="sub-stat-val hy">${subjectHY}</div>
-                <div class="sub-stat-label">High Yield</div>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      // Animate progress bars smoothly after the DOM paints
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          document.querySelectorAll('.progress-bar[data-target]').forEach(bar => {
-            bar.style.width = bar.dataset.target + '%';
-          });
-        });
-      });
-    }
-
-    /**
-     * Number counter animation
-     */
-    function animateCount(id, target) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (target === 0) { el.textContent = '0'; return; }
-      
-      let start = 0;
-      const duration = 700;
-      let startTime = null;
-      
-      function step(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const progress = Math.min((timestamp - startTime) / duration, 1);
-        el.textContent = Math.round(progress * target).toLocaleString();
-        
-        if (progress < 1) {
-          requestAnimationFrame(step);
-        }
-      }
-      requestAnimationFrame(step);
-    }
-
-    /**
-     * Integrated Toast functionality mapping to styles.css
-     */
-    function showToast(msg, type = 'info') {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      
-      // Assign class based on the type (success, error, info)
-      toast.className = `toast toast-${type}`;
-      toast.innerHTML = msg;
-      
-      container.appendChild(toast);
-      
-      // Trigger animation
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          toast.classList.add('show');
-        });
-      });
-
-      // Remove after delay
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
-    }
-  <script src="js/data.js"></script>
-  <script type="module" src="js/storage.js"></script>
-  
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      renderStats();
-      renderSubjectOverview();
-    });
 
     function renderStats() {
       const stats = getStats();
@@ -468,130 +197,56 @@
       showToast('Card counts refreshed successfully', 'success');
     }
 
-    // Toggle the Accordion
-    function toggleSubject(subjectId) {
-      const wrapper = document.getElementById('subject-wrap-' + subjectId);
-      wrapper.classList.toggle('expanded');
-    }
-
     function renderSubjectOverview() {
       const container = document.getElementById('subject-overview');
-      const allCards = getCards();
-      const allTopics = getTopics();
+      const subjectCount = document.getElementById('subject-count');
 
-      document.getElementById('subject-count').textContent = `${SUBJECTS.length} subjects`;
+      if (!container || !subjectCount) return;
 
-      container.innerHTML = SUBJECTS.map(subject => {
-        // Collect Chapter IDs
-        const chapterIds = subject.sections.flatMap(section => 
-          section.chapters.map(chapter => chapter.id)
-        );
+      const allSubjects = Array.isArray(SUBJECTS) ? SUBJECTS : [];
+      subjectCount.textContent = `${allSubjects.length} subjects`;
 
-        // Subject level stats
-        const subjectCards = allCards.filter(card => chapterIds.includes(card.chapterId));
-        const subjectHY = subjectCards.filter(card => card.layer && card.layer <= 3).length;
-        const topicCount = allTopics.filter(topic => chapterIds.includes(topic.chapterId)).length;
-        const progressPct = subjectCards.length > 0 ? Math.round((subjectHY / subjectCards.length) * 100) : 0;
+      container.innerHTML = allSubjects.map(subject => {
+        const chapterCount = (subject.sections || []).reduce((count, section) => {
+          return count + ((section.chapters || []).length || 0);
+        }, 0);
 
-        // Build the Chapters HTML
-        let chaptersHtml = '';
-        subject.sections.forEach(section => {
-          if (section.name) {
-            chaptersHtml += `<div class="section-divider" style="font-size:12px; margin: 16px 0 8px;">${section.name}</div>`;
-          }
-          
-          section.chapters.forEach(chapter => {
-            const chapterTopics = allTopics.filter(t => t.chapterId === chapter.id);
-            
-            // Build Topics inside this Chapter
-            let topicsHtml = '';
-            if (chapterTopics.length > 0) {
-              topicsHtml = `<div class="topic-list-dash">` + chapterTopics.map(t => 
-                `<a href="flashcards.html?topic=${t.id}" class="topic-link"><i class="fa-solid fa-file-lines"></i> ${t.name}</a>`
-              ).join('') + `</div>`;
-            } else {
-              topicsHtml = `<div class="topic-list-dash"><span style="font-size:12px;color:var(--text-muted);padding:6px 10px;">No topics added yet</span></div>`;
-            }
+        const badge = (subject.code || subject.name.slice(0, 2)).toUpperCase();
 
-            // Chapter Row (Title, Buttons, Topics)
-            chaptersHtml += `
-              <div class="chapter-item">
-                <div class="chapter-header">
-                  <div class="chapter-title">Ch ${chapter.num}: ${chapter.name}</div>
-                  <div class="chapter-actions">
-                    <a href="settings.html?chapter=${chapter.id}&mode=practice" class="btn btn-ghost btn-sm"><i class="fa-solid fa-layer-group"></i> Practice</a>
-                    <a href="settings.html?chapter=${chapter.id}&mode=test" class="btn btn-primary btn-sm"><i class="fa-solid fa-stopwatch"></i> Test</a>
-                  </div>
-                </div>
-                ${topicsHtml}
-              </div>
-            `;
-          });
-        });
-
-        // Return the full Accordion wrapper
         return `
-          <div class="subject-wrapper" id="subject-wrap-${subject.id}">
-            <div class="subject-progress-card" onclick="toggleSubject('${subject.id}')">
-              <div class="subject-badge">${subject.code}</div>
-              
-              <div class="subject-info">
-                <div class="subject-name">${subject.name}</div>
-                <div class="subject-meta">${chapterIds.length} chapters &middot; ${topicCount} topics</div>
+          <a href="subject.html?subject=${encodeURIComponent(subject.id)}" class="subject-card-link">
+            <div class="subject-card">
+              <div class="subject-card-header">
+                <span class="subject-card-badge">${badge}</span>
+                <span class="subject-card-arrow"><i class="fa-solid fa-arrow-right"></i></span>
               </div>
-              
-              <div class="subject-progress-wrap">
-                <div class="progress-label">
-                  <span>High Yield Coverage</span>
-                  <span>${progressPct}%</span>
-                </div>
-                <div class="progress-track">
-                  <div class="progress-bar" data-target="${progressPct}"></div>
-                </div>
-              </div>
-              
-              <div class="subject-stats">
-                <div class="sub-stat">
-                  <div class="sub-stat-val">${subjectCards.length}</div>
-                  <div class="sub-stat-label">Total Cards</div>
-                </div>
-                <div class="sub-stat">
-                  <div class="sub-stat-val hy">${subjectHY}</div>
-                  <div class="sub-stat-label">High Yield</div>
-                </div>
-              </div>
-              
-              <i class="fa-solid fa-chevron-down chevron-icon"></i>
+              <div class="subject-card-name">${subject.name}</div>
+              <div class="subject-card-meta">${chapterCount} chapters</div>
             </div>
-
-            <div class="chapters-container">
-              ${chaptersHtml}
-            </div>
-          </div>
+          </a>
         `;
       }).join('');
-
-      // Animate progress bars
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          document.querySelectorAll('.progress-bar[data-target]').forEach(bar => {
-            bar.style.width = bar.dataset.target + '%';
-          });
-        });
-      });
     }
 
     function animateCount(id, target) {
       const el = document.getElementById(id);
       if (!el) return;
       if (target === 0) { el.textContent = '0'; return; }
-      let start = 0; const duration = 700; let startTime = null;
+
+      let start = 0;
+      const duration = 700;
+      let startTime = null;
+
       function step(timestamp) {
         if (!startTime) startTime = timestamp;
         const progress = Math.min((timestamp - startTime) / duration, 1);
         el.textContent = Math.round(progress * target).toLocaleString();
-        if (progress < 1) requestAnimationFrame(step);
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
       }
+
       requestAnimationFrame(step);
     }
 
@@ -608,8 +263,5 @@
       }, 3000);
     }
   </script>
-
 </body>
 </html>
-
-
